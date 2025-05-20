@@ -26,8 +26,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Statistics route
     Route::get('statistics', [StatisticsController::class, 'index'])->name('statistics.index');
     
-    // Additional teacher routes
-    Route::get('teachers/export', [TeacherController::class, 'export'])->name('teachers.export');
 });
 
 // Profile routes

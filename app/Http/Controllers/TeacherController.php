@@ -108,59 +108,19 @@ class TeacherController extends Controller
             ->with('success', 'Giáo viên đã được cập nhật thành công.');
     }
 
-    public function destroy(Teacher $teacher)
+    public function destroy($id)
     {
-        $teacher->delete();
-
-        return redirect()->route('teachers.index')
-            ->with('success', 'Giáo viên đã được xóa thành công.');
+        try {
+            $item = Teacher::findOrFail($id); // Thay Teacher bằng model tương ứng
+            $item->delete();
+            
+            return redirect()->back()->with('success', 'Xóa Giáo Viên thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Xóa Giáo Viên thất bại: ' . $e->getMessage());
+        }
     }
 
-    public function statistics(Request $request)
-    {
-        $query = Teacher::with(['faculty', 'degree']);
+    
 
-        if ($request->has('faculty_id') && $request->faculty_id !== 'all') {
-            $query->where('faculty_id', $request->faculty_id);
-        }
-
-        if ($request->has('year') && $request->year !== 'all') {
-            $query->whereYear('created_at', $request->year);
-        }
-
-        if ($request->has('degree_id') && $request->degree_id !== 'all') {
-            $query->where('degree_id', $request->degree_id);
-        }
-
-        $teachers = $query->get();
-        $faculties = Faculty::all();
-        $degrees = Degree::all();
-
-        // Tính toán thống kê theo khoa
-        $facultyStats = $teachers->groupBy('faculty.name')
-            ->map(function ($group) {
-                return $group->count();
-            })->toArray();
-
-        // Tính toán thống kê theo bằng cấp
-        $degreeStats = $teachers->groupBy('degree.name')
-            ->map(function ($group) {
-                return $group->count();
-            })->toArray();
-
-        // Chuẩn bị dữ liệu cho biểu đồ
-        $facultyData = [];
-        foreach ($faculties as $faculty) {
-            $facultyData[$faculty->name] = $teachers->where('faculty_id', $faculty->id)->count();
-        }
-
-        return view('teachers.statistics', compact('teachers', 'faculties', 'degrees', 'facultyStats', 'degreeStats', 'facultyData'));
-    }
-
-    public function export()
-    {
-        $teachers = Teacher::with(['faculty', 'degree'])->get();
-        // Implement Excel export logic here
-        return response()->json(['message' => 'Export functionality to be implemented']);
-    }
+   
 } 
