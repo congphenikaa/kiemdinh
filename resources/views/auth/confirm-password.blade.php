@@ -1,26 +1,32 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
+    <div class="mb-6 text-base text-gray-700">
+        Đây là khu vực bảo mật của ứng dụng. Vui lòng xác nhận mật khẩu trước khi tiếp tục.
     </div>
 
-    <form method="POST" action="{{ route('password.confirm') }}">
+    <form method="POST" action="{{ route('password.confirm') }}" class="space-y-6">
         @csrf
 
-        <!-- Password -->
+        <!-- Mật khẩu -->
         <div>
-            <x-input-label for="password" :value="__('Password')" />
+            <x-input-label for="password" :value="'Mật khẩu hiện tại'" />
 
             <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+                          type="password"
+                          name="password"
+                          required
+                          autocomplete="current-password"
+                          placeholder="Nhập mật khẩu của bạn" />
 
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <div class="flex justify-end mt-4">
+        <div class="flex justify-between items-center">
+            <a href="{{ route('password.request') }}" class="text-sm text-blue-600 hover:underline">
+                Quên mật khẩu?
+            </a>
+
             <x-primary-button>
-                {{ __('Confirm') }}
+                Xác nhận
             </x-primary-button>
         </div>
     </form>

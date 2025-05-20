@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Degree;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 
 class DegreeController extends Controller
@@ -21,8 +22,11 @@ class DegreeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'short_name' => 'required|string|max:50'
+            'name' => 'required|string|max:255|unique:degrees,name',
+            'short_name' => 'required|string|max:50|unique:degrees,short_name'
+        ], [
+            'name.unique' => 'Tên bằng cấp đã tồn tại',
+            'short_name.unique' => 'Tên viết tắt đã tồn tại'
         ]);
 
         Degree::create($validated);
@@ -39,8 +43,11 @@ class DegreeController extends Controller
     public function update(Request $request, Degree $degree)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'short_name' => 'required|string|max:50'
+            'name' => 'required|string|max:255|unique:degrees,name,'.$degree->id,
+            'short_name' => 'required|string|max:50|unique:degrees,short_name,'.$degree->id
+        ], [
+            'name.unique' => 'Tên bằng cấp đã tồn tại',
+            'short_name.unique' => 'Tên viết tắt đã tồn tại'
         ]);
 
         $degree->update($validated);
@@ -51,9 +58,15 @@ class DegreeController extends Controller
 
     public function destroy(Degree $degree)
     {
+        // Kiểm tra xem có giảng viên nào đang sử dụng bằng cấp này không
+        if (Teacher::where('degree_id', $degree->id)->exists()) {
+            return redirect()->route('degrees.index')
+                ->with('error', 'Không thể xóa bằng cấp vì có giảng viên đang sử dụng.');
+        }
+
         $degree->delete();
 
         return redirect()->route('degrees.index')
             ->with('success', 'Bằng cấp đã được xóa thành công.');
     }
-} 
+}
