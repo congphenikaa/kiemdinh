@@ -68,7 +68,116 @@
                     </ul>
                 </li>
 
-                
+                <!-- Quản lý lớp học -->
+                <li class="menu-parent">
+                    <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
+                        <div class="flex items-center">
+                            <i class="fas fa-school w-5 mr-3 text-center"></i>
+                            <span>Quản lý lớp học</span>
+                        </div>
+                        <i class="dropdown-icon fas fa-chevron-down text-xs transition-transform"></i>
+                    </div>
+                    <ul class="child-menu bg-gray-700 overflow-hidden max-h-0 rounded">
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-book w-5 mr-3 text-center"></i>
+                                <span>Quản lý học phần</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-calendar-alt w-5 mr-3 text-center"></i>
+                                <span>Quản lý kì học</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-table w-5 mr-3 text-center"></i>
+                                <span>Quản lý TKB/Lớp học</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-chart-pie w-5 mr-3 text-center"></i>
+                                <span>Thống kê các lớp mở</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Tính tiền dạy -->
+                <li class="menu-parent">
+                    <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
+                        <div class="flex items-center">
+                            <i class="fas fa-money-bill-wave w-5 mr-3 text-center"></i>
+                            <span>Tính tiền dạy</span>
+                        </div>
+                        <i class="dropdown-icon fas fa-chevron-down text-xs transition-transform"></i>
+                    </div>
+                    <ul class="child-menu bg-gray-700 overflow-hidden max-h-0 rounded">
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-coins w-5 mr-3 text-center"></i>
+                                <span>Thiết lập mức tiền/tiết</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-user-graduate w-5 mr-3 text-center"></i>
+                                <span>Hệ số giáo viên theo bằng cấp</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-users w-5 mr-3 text-center"></i>
+                                <span>Hệ số lớp theo số lượng HV</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-tasks w-5 mr-3 text-center"></i>
+                                <span>Phân công giảng viên</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-calculator w-5 mr-3 text-center"></i>
+                                <span>Tính tiền dạy theo kì</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Báo cáo -->
+                <li class="menu-parent">
+                    <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt w-5 mr-3 text-center"></i>
+                            <span>Báo cáo</span>
+                        </div>
+                        <i class="dropdown-icon fas fa-chevron-down text-xs transition-transform"></i>
+                    </div>
+                    <ul class="child-menu bg-gray-700 overflow-hidden max-h-0 rounded">
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-user-tie w-5 mr-3 text-center"></i>
+                                <span>Tiền dạy giảng viên theo năm</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-building w-5 mr-3 text-center"></i>
+                                <span>Tiền dạy khoa theo năm</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-university w-5 mr-3 text-center"></i>
+                                <span>Tiền dạy toàn trường</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </div>
 
