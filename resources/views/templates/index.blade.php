@@ -36,6 +36,16 @@
             </table>
         </div>
     </div>
+    @if(isset($records) && $records->isNotEmpty())
+        <div class="flex flex-col md:flex-row justify-between items-center px-4 py-3 bg-gray-50 border-t text-sm text-gray-600 gap-2 mt-4 rounded-b-xl">
+            <div class="text-center md:text-left">
+                Hiển thị <b>{{ $records->firstItem() }}</b> đến <b>{{ $records->lastItem() }}</b> trong tổng số <b>{{ $records->total() }}</b> bản ghi
+            </div>
+            <div>
+                {{ $records->appends(request()->query())->links() }}
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- Delete Form -->

@@ -6,121 +6,138 @@ use App\Models\Teacher;
 use App\Models\Faculty;
 use App\Models\Degree;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class TeacherController extends Controller
 {
     public function index()
     {
-        $teachers = Teacher::with(['faculty', 'degree'])->get();
-        return view('teachers.index', compact('teachers'));
+        $teachers = Teacher::with(['faculty', 'degree'])
+                        ->orderBy('name')
+                        ->paginate(10);
+        
+        return view('teacher-management.teachers.index', compact('teachers'));
     }
 
     public function create()
     {
-        $faculties = Faculty::all();
-        $degrees = Degree::all();
-        return view('teachers.create', compact('faculties', 'degrees'));
+        $faculties = Faculty::orderBy('name')->get();
+        $degrees = Degree::orderBy('name')->get();
+        
+        return view('teacher-management.teachers.create', compact('faculties', 'degrees'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code' => 'nullable|string|max:50|unique:teachers',
-            'name' => 'required|string|max:255|regex:/^[\pL\s\-]+$/u', // Chỉ cho phép chữ cái, khoảng trắng và dấu gạch ngang
-            'dob' => [
-                'required',
-                'date',
-                'before_or_equal:' . Carbon::now()->subYears(18)->format('Y-m-d'), // Ít nhất 18 tuổi
-                'after_or_equal:' . Carbon::now()->subYears(150)->format('Y-m-d') // Không quá 150 tuổi
-            ],
-            'phone' => [
-                'nullable',
-                'string',
-                'max:20',
-                'regex:/^[0-9\-\+\(\)\s]+$/' // Chỉ cho phép số và các ký tự điện thoại
-            ],
-            'email' => 'nullable|email|max:255|unique:teachers,email',
+            'code' => 'required|string|max:20|unique:teachers',
+            'name' => 'required|string|max:255',
+            'dob' => 'required|date',
+            'gender' => 'required|in:male,female,other',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:255|unique:teachers',
+            'address' => 'required|string|max:255',
             'faculty_id' => 'required|exists:faculties,id',
-            'degree_id' => 'required|exists:degrees,id'
-        ], [
-            'dob.before_or_equal' => 'Giáo viên phải từ 18 tuổi trở lên',
-            'dob.after_or_equal' => 'Ngày sinh không hợp lệ (tối đa 150 tuổi)',
-            'name.regex' => 'Tên chỉ được chứa chữ cái và khoảng trắng',
-            'phone.regex' => 'Số điện thoại không hợp lệ',
-            'email.unique' => 'Email đã được sử dụng bởi giáo viên khác'
+            'degree_id' => 'required|exists:degrees,id',
+            'start_date' => 'required|date',
+            'is_active' => 'boolean',
+            'notes' => 'nullable|string',
         ]);
 
-        // Tự động tạo mã nếu không nhập
-        if (empty($validated['code'])) {
-            $validated['code'] = 'GV' . str_pad(Teacher::count() + 1, 3, '0', STR_PAD_LEFT);
+        try {
+            DB::beginTransaction();
+            
+            $validated['is_active'] = $request->has('is_active');
+            $validated['dob'] = Carbon::parse($validated['dob'])->format('Y-m-d');
+            $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
+
+            Teacher::create($validated);
+            
+            DB::commit();
+            
+            return redirect()->route('teachers.index')
+                             ->with('success', 'Giảng viên đã được tạo thành công.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Có lỗi xảy ra khi tạo giảng viên: ' . $e->getMessage());
         }
-
-        Teacher::create($validated);
-
-        return redirect()->route('teachers.index')
-            ->with('success', 'Giáo viên đã được thêm thành công.');
-    }
-
-    public function show(Teacher $teacher)
-    {
-        return view('teachers.show', compact('teacher'));
     }
 
     public function edit(Teacher $teacher)
     {
-        $faculties = Faculty::all();
-        $degrees = Degree::all();
-        return view('teachers.edit', compact('teacher', 'faculties', 'degrees'));
+        $faculties = Faculty::orderBy('name')->get();
+        $degrees = Degree::orderBy('name')->get();
+        
+        return view('teacher-management.teachers.edit', compact('teacher', 'faculties', 'degrees'));
     }
 
     public function update(Request $request, Teacher $teacher)
     {
         $validated = $request->validate([
-            'code' => 'nullable|string|max:50|unique:teachers,code,' . $teacher->id,
-            'name' => 'required|string|max:255|regex:/^[\pL\s\-]+$/u',
-            'dob' => [
+            'code' => [
                 'required',
-                'date',
-                'before_or_equal:' . Carbon::now()->subYears(18)->format('Y-m-d'),
-                'after_or_equal:' . Carbon::now()->subYears(150)->format('Y-m-d')
-            ],
-            'phone' => [
-                'nullable',
                 'string',
                 'max:20',
-                'regex:/^[0-9\-\+\(\)\s]+$/'
+                Rule::unique('teachers')->ignore($teacher->id),
             ],
-            'email' => 'nullable|email|max:255|unique:teachers,email,' . $teacher->id,
+            'name' => 'required|string|max:255',
+            'dob' => 'required|date',
+            'gender' => 'required|in:male,female,other',
+            'phone' => 'required|string|max:20',
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('teachers')->ignore($teacher->id),
+            ],
+            'address' => 'required|string|max:255',
             'faculty_id' => 'required|exists:faculties,id',
-            'degree_id' => 'required|exists:degrees,id'
-        ], [
-            'dob.before_or_equal' => 'Giáo viên phải từ 18 tuổi trở lên',
-            'dob.after_or_equal' => 'Ngày sinh không hợp lệ (tối đa 150 tuổi)',
-            'name.regex' => 'Tên chỉ được chứa chữ cái và khoảng trắng',
-            'phone.regex' => 'Số điện thoại không hợp lệ',
-            'email.unique' => 'Email đã được sử dụng bởi giáo viên khác'
+            'degree_id' => 'required|exists:degrees,id',
+            'start_date' => 'required|date',
+            'is_active' => 'boolean',
+            'notes' => 'nullable|string',
         ]);
 
-        $teacher->update($validated);
-
-        return redirect()->route('teachers.index')
-            ->with('success', 'Giáo viên đã được cập nhật thành công.');
-    }
-
-    public function destroy($id)
-    {
         try {
-            $item = Teacher::findOrFail($id); // Thay Teacher bằng model tương ứng
-            $item->delete();
+            DB::beginTransaction();
             
-            return redirect()->back()->with('success', 'Xóa Giáo Viên thành công');
+            $validated['is_active'] = $request->has('is_active');
+            $validated['dob'] = Carbon::parse($validated['dob'])->format('Y-m-d');
+            $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
+
+            $teacher->update($validated);
+            
+            DB::commit();
+            
+            return redirect()->route('teachers.index')
+                             ->with('success', 'Thông tin giảng viên đã được cập nhật.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Xóa Giáo Viên thất bại: ' . $e->getMessage());
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Có lỗi xảy ra khi cập nhật giảng viên: ' . $e->getMessage());
         }
     }
 
-    
+    public function destroy(Teacher $teacher)
+    {
+        try {
+            DB::beginTransaction();
+            
+            if ($teacher->teachingAssignments()->exists()) {
+                return redirect()->route('teachers.index')
+                                 ->with('error', 'Không thể xóa giảng viên vì đã có phân công giảng dạy.');
+            }
 
-   
-} 
+            $teacher->delete();
+            
+            DB::commit();
+            
+            return redirect()->route('teachers.index')
+                             ->with('success', 'Giảng viên đã được xóa thành công.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Có lỗi xảy ra khi xóa giảng viên: ' . $e->getMessage());
+        }
+    }
+}

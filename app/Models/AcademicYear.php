@@ -5,18 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Degree extends Model
+class AcademicYear extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name', 
-        'short_name', 
-        'salary_coefficient'
+        'name',
+        'start_date',
+        'end_date',
+        'is_active'
     ];
 
-    public function teachers()
+    public function semesters()
     {
-        return $this->hasMany(Teacher::class);
+        return $this->hasMany(Semester::class);
     }
 }
