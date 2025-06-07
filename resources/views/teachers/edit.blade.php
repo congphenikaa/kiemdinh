@@ -1,89 +1,91 @@
-@extends('layouts.app')
+@extends('templates.edit', [
+    'entityName' => 'Giáo viên',
+    'routePrefix' => 'teachers',
+    'model' => $teacher
+])
 
-@section('title', 'Chỉnh sửa giáo viên')
-
-@section('breadcrumb', 'Trang chủ / Giáo viên / Chỉnh sửa')
-
-@section('content')
-<div class="content-section">
-    <div class="content-header">
-        <h3>Chỉnh sửa giáo viên</h3>
-        <a href="{{ route('teachers.index') }}" class="btn btn-back">
-            <i class="fas fa-arrow-left"></i> Quay lại
-        </a>
+@section('form_fields')
+    <!-- Mã số -->
+    <div class="mb-4">
+        <label for="code" class="block text-gray-700 text-sm font-medium mb-2">Mã số</label>
+        <input type="text" id="code" name="code" value="{{ old('code', $teacher->code) }}"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        @error('code')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
     </div>
-    <div class="form-container">
-        <form action="{{ route('teachers.update', $teacher) }}" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="form-group">
-                <label for="code">Mã số</label>
-                <input type="text" id="code" name="code" value="{{ old('code', $teacher->code) }}">
-                @error('code')
-                    <span class="error">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="form-group">
-                <label for="name">Họ tên <span class="required">*</span></label>
-                <input type="text" id="name" name="name" value="{{ old('name', $teacher->name) }}" required>
-                @error('name')
-                    <span class="error">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="form-group">
-                <label for="dob">Ngày sinh <span class="required">*</span></label>
-                <input type="date" id="dob" name="dob" value="{{ old('dob', $teacher->dob->format('Y-m-d')) }}" required>
-                @error('dob')
-                    <span class="error">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="form-group">
-                <label for="phone">Điện thoại</label>
-                <input type="tel" id="phone" name="phone" value="{{ old('phone', $teacher->phone) }}">
-                @error('phone')
-                    <span class="error">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{ old('email', $teacher->email) }}">
-                @error('email')
-                    <span class="error">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="form-group">
-                <label for="faculty_id">Khoa <span class="required">*</span></label>
-                <select id="faculty_id" name="faculty_id" required>
-                    <option value="">-- Chọn khoa --</option>
-                    @foreach($faculties as $faculty)
-                        <option value="{{ $faculty->id }}" {{ (old('faculty_id', $teacher->faculty_id) == $faculty->id) ? 'selected' : '' }}>
-                            {{ $faculty->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('faculty_id')
-                    <span class="error">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="form-group">
-                <label for="degree_id">Bằng cấp <span class="required">*</span></label>
-                <select id="degree_id" name="degree_id" required>
-                    <option value="">-- Chọn bằng cấp --</option>
-                    @foreach($degrees as $degree)
-                        <option value="{{ $degree->id }}" {{ (old('degree_id', $teacher->degree_id) == $degree->id) ? 'selected' : '' }}>
-                            {{ $degree->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('degree_id')
-                    <span class="error">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Cập nhật</button>
-                <a href="{{ route('teachers.index') }}" class="btn btn-secondary">Hủy</a>
-            </div>
-        </form>
+
+    <!-- Họ tên -->
+    <div class="mb-4">
+        <label for="name" class="block text-gray-700 text-sm font-medium mb-2">Họ tên <span class="text-red-500">*</span></label>
+        <input type="text" id="name" name="name" value="{{ old('name', $teacher->name) }}" required
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        @error('name')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
     </div>
-</div>
-@endsection 
+
+    <!-- Ngày sinh -->
+    <div class="mb-4">
+        <label for="dob" class="block text-gray-700 text-sm font-medium mb-2">Ngày sinh <span class="text-red-500">*</span></label>
+        <input type="date" id="dob" name="dob" value="{{ old('dob', $teacher->dob->format('Y-m-d')) }}" required
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        @error('dob')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <!-- Điện thoại -->
+    <div class="mb-4">
+        <label for="phone" class="block text-gray-700 text-sm font-medium mb-2">Điện thoại</label>
+        <input type="tel" id="phone" name="phone" value="{{ old('phone', $teacher->phone) }}"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        @error('phone')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <!-- Email -->
+    <div class="mb-4">
+        <label for="email" class="block text-gray-700 text-sm font-medium mb-2">Email</label>
+        <input type="email" id="email" name="email" value="{{ old('email', $teacher->email) }}"
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        @error('email')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <!-- Khoa -->
+    <div class="mb-4">
+        <label for="faculty_id" class="block text-gray-700 text-sm font-medium mb-2">Khoa <span class="text-red-500">*</span></label>
+        <select id="faculty_id" name="faculty_id" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">-- Chọn khoa --</option>
+            @foreach($faculties as $faculty)
+                <option value="{{ $faculty->id }}" {{ (old('faculty_id', $teacher->faculty_id) == $faculty->id) ? 'selected' : '' }}>
+                    {{ $faculty->name }}
+                </option>
+            @endforeach
+        </select>
+        @error('faculty_id')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
+
+    <!-- Bằng cấp -->
+    <div class="mb-4">
+        <label for="degree_id" class="block text-gray-700 text-sm font-medium mb-2">Bằng cấp <span class="text-red-500">*</span></label>
+        <select id="degree_id" name="degree_id" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">-- Chọn bằng cấp --</option>
+            @foreach($degrees as $degree)
+                <option value="{{ $degree->id }}" {{ (old('degree_id', $teacher->degree_id) == $degree->id) ? 'selected' : '' }}>
+                    {{ $degree->name }}
+                </option>
+            @endforeach
+        </select>
+        @error('degree_id')
+            <span class="text-red-500 text-sm">{{ $message }}</span>
+        @enderror
+    </div>
+@endsection
