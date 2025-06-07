@@ -15,9 +15,11 @@
                     class="search-input pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
             </div>
-            <a href="{{ route($routePrefix.'.create') }}" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="fas fa-plus mr-2"></i> Thêm mới
-            </a>
+            @if ($routePrefix !== 'teaching-assignments')
+                <a href="{{ route($routePrefix.'.create') }}" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i> Thêm mới
+                </a>
+            @endif
         </div>
     </div>
 

@@ -45,21 +45,21 @@ class Clazz extends Model
 
     public function teachingAssignments()
     {
-        return $this->hasMany(TeachingAssignment::class);
+        return $this->hasMany(TeachingAssignment::class, 'class_id'); 
     }
 
-    public function teachers()
-    {
-        return $this->belongsToMany(Teacher::class, 'teaching_assignments')
-                   ->withPivot('main_teacher', 'assigned_sessions');
-    }
+   public function teachers()
+{
+    return $this->belongsToMany(Teacher::class, 'teaching_assignments', 'class_id', 'teacher_id')
+               ->withPivot('main_teacher', 'assigned_sessions');
+}
 
     public function mainTeacher()
-    {
-        return $this->belongsToMany(Teacher::class, 'teaching_assignments')
-                   ->wherePivot('main_teacher', true)
-                   ->withPivot('assigned_sessions');
-    }
+{
+    return $this->belongsToMany(Teacher::class, 'teaching_assignments', 'class_id', 'teacher_id')
+               ->wherePivot('main_teacher', true)
+               ->withPivot('assigned_sessions');
+}
 
     public function statistics()
     {
@@ -70,4 +70,5 @@ class Clazz extends Model
     {
         return $this->hasMany(TeacherPayment::class);
     }
+    
 }

@@ -13,6 +13,11 @@ class ClassSizeCoefficientController extends Controller
         return view('payment.coefficients.index', compact('coefficients'));
     }
 
+    public function create()
+    {
+        return view('payment.coefficients.create');
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -24,7 +29,11 @@ class ClassSizeCoefficientController extends Controller
         // Kiểm tra trùng phạm vi
         $conflict = ClassSizeCoefficient::where(function($query) use ($request) {
             $query->whereBetween('min_students', [$request->min_students, $request->max_students])
-                  ->orWhereBetween('max_students', [$request->min_students, $request->max_students]);
+                  ->orWhereBetween('max_students', [$request->min_students, $request->max_students])
+                  ->orWhere(function($q) use ($request) {
+                      $q->where('min_students', '<=', $request->min_students)
+                        ->where('max_students', '>=', $request->max_students);
+                  });
         })->exists();
 
         if ($conflict) {

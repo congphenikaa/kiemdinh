@@ -50,12 +50,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 
     // 3. Tính tiền dạy
-    Route::resource('payment-configs', ScheduleController::class);
-    // Route::prefix('payment-configs')->group(function () {
-    //     Route::get('/', [PaymentConfigController::class, 'index'])->name('payment-configs.index');
-    //     Route::post('/', [PaymentConfigController::class, 'store'])->name('payment-configs.store');
-    //     Route::put('/', [PaymentConfigController::class, 'update'])->name('payment-configs.update');
-    // });
+    Route::resource('payment-configs', PaymentConfigController::class);
     
     Route::resource('class-size-coefficients', ClassSizeCoefficientController::class);
     

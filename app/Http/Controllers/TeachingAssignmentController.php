@@ -2,115 +2,112 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\TeachingAssignment;
-use App\Models\Teacher;
 use App\Models\Clazz;
+use App\Models\Teacher;
+use App\Models\TeachingAssignment;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class TeachingAssignmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $assignments = TeachingAssignment::with(['teacher', 'class'])
-            ->latest()
+        $classes = Clazz::with(['course', 'semester', 'mainTeacher', 'teachingAssignments.teacher'])
+            ->where('status', 'open')
+            ->orderBy('start_date', 'desc')
             ->paginate(10);
-
-        return view('class-management.teaching-assignments.index', compact('assignments'));
+            
+        return view('class-management.assignments.index', compact('classes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $teachers = Teacher::orderBy('name')->get();
-        $classes = Clazz::orderBy('name')->get();
+    public function create(Clazz $class)
+{
+    $teachers = Teacher::all();
+    $currentAssignments = $class->teachingAssignments()->with('teacher')->get();
+    
+    return view('class-management.assignments.create', compact('class', 'teachers', 'currentAssignments'));
+}
 
-        return view('class-management.teaching-assignments.create', compact('teachers', 'classes'));
-    }
+public function store(Request $request)
+{
+    $request->validate([
+        'class_id' => 'required|exists:classes,id',
+        'teacher_id' => 'required|exists:teachers,id',
+        'main_teacher' => 'nullable|boolean',
+        'assigned_sessions' => 'required|integer|min:1'
+    ]);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'class_id' => [
-                'required',
-                'exists:classes,id',
-                Rule::unique('teaching_assignments')->where(function ($query) use ($request) {
-                    return $query->where('teacher_id', $request->teacher_id);
-                })
-            ],
-            'teacher_id' => 'required|exists:teachers,id',
-            'main_teacher' => 'sometimes|boolean',
-            'assigned_sessions' => 'required|integer|min:1'
-        ], [
-            'class_id.unique' => 'This teacher is already assigned to this class.'
+    try {
+        DB::beginTransaction();
+
+        // Kiểm tra nếu là main teacher thì hủy main teacher cũ
+        if ($request->main_teacher) {
+            TeachingAssignment::where('class_id', $request->class_id)
+                ->update(['main_teacher' => false]);
+        }
+
+        TeachingAssignment::create([
+            'class_id' => $request->class_id,
+            'teacher_id' => $request->teacher_id,
+            'main_teacher' => $request->main_teacher ?? false,
+            'assigned_sessions' => $request->assigned_sessions
         ]);
 
-        TeachingAssignment::create($validated);
-
-        return redirect()->route('class-management.assignments.index')
-            ->with('success', 'Teaching assignment created successfully.');
+        DB::commit();
+        
+        return redirect()->route('teaching-assignments.index')
+            ->with('success', 'Phân công giảng dạy đã được thêm thành công');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Lỗi khi thêm phân công: ' . $e->getMessage());
     }
+}
 
-    /**
-     * Display the specified resource.
-     */
+public function edit(Clazz $class)
+{
+    $teachers = Teacher::all();
+    $assignments = $class->teachingAssignments()->with('teacher')->get();
+    
+    return view('teaching-assignments.edit', compact('class', 'teachers', 'assignments'));
+}
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(TeachingAssignment $assignment)
-    {
-        $teachers = Teacher::orderBy('name')->get();
-        $classes = Clazz::orderBy('name')->get();
+public function update(Request $request, Clazz $class)
+{
+    $request->validate([
+        'assignments' => 'required|array',
+        'assignments.*.teacher_id' => 'required|exists:teachers,id',
+        'assignments.*.main_teacher' => 'nullable|boolean',
+        'assignments.*.assigned_sessions' => 'required|integer|min:1'
+    ]);
 
-        return view('class-management.teaching-assignments.edit', compact('assignment', 'teachers', 'classes'));
+    try {
+        DB::beginTransaction();
+
+        // Xóa tất cả phân công cũ
+        $class->teachingAssignments()->delete();
+
+        // Thêm phân công mới
+        foreach ($request->assignments as $assignment) {
+            // Nếu là main teacher thì hủy main teacher cũ
+            if ($assignment['main_teacher'] ?? false) {
+                TeachingAssignment::where('class_id', $class->id)
+                    ->update(['main_teacher' => false]);
+            }
+
+            TeachingAssignment::create([
+                'class_id' => $class->id,
+                'teacher_id' => $assignment['teacher_id'],
+                'main_teacher' => $assignment['main_teacher'] ?? false,
+                'assigned_sessions' => $assignment['assigned_sessions']
+            ]);
+        }
+
+        DB::commit();
+        
+        return redirect()->route('teaching-assignments.index')
+            ->with('success', 'Cập nhật phân công thành công');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, TeachingAssignment $assignment)
-    {
-        $validated = $request->validate([
-            'class_id' => [
-                'required',
-                'exists:classes,id',
-                Rule::unique('teaching_assignments')
-                    ->where(function ($query) use ($request) {
-                        return $query->where('teacher_id', $request->teacher_id);
-                    })
-                    ->ignore($assignment->id)
-            ],
-            'teacher_id' => 'required|exists:teachers,id',
-            'main_teacher' => 'sometimes|boolean',
-            'assigned_sessions' => 'required|integer|min:1'
-        ], [
-            'class_id.unique' => 'This teacher is already assigned to this class.'
-        ]);
-
-        $assignment->update($validated);
-
-        return redirect()->route('class-management.assignments.index')
-            ->with('success', 'Teaching assignment updated successfully.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(TeachingAssignment $assignment)
-    {
-        $assignment->delete();
-
-        return redirect()->route('class-management.assignments.index')
-            ->with('success', 'Teaching assignment deleted successfully.');
-    }
+}
 }

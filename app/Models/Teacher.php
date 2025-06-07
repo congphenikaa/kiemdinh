@@ -60,4 +60,6 @@ class Teacher extends Model
     {
         return $this->hasMany(TeacherStatistics::class);
     }
+
+    
 }

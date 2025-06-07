@@ -13,6 +13,11 @@ class PaymentConfigController extends Controller
         return view('payment.configs.index', compact('config'));
     }
 
+    public function create()
+    {
+        return view('payment.configs.create');
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
