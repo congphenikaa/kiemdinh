@@ -11,7 +11,7 @@
                 <label for="name" class="block text-sm font-medium text-gray-700 pt-2">
                     Tên kỳ học <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Ví dụ: Học kỳ I, Học kỳ II</p>
+                <p class="mt-1 text-xs text-gray-500">Ví dụ: Kỳ I Đợt 1, Kỳ I Đợt 2..</p>
             </div>
             <div class="md:col-span-2">
                 <input type="text" id="name" name="name" value="{{ old('name') }}" required

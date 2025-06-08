@@ -6,12 +6,19 @@ use App\Models\Clazz;
 use App\Models\Teacher;
 use App\Models\TeachingAssignment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TeachingAssignmentController extends Controller
 {
     public function index()
     {
-        $classes = Clazz::with(['course', 'semester', 'mainTeacher', 'teachingAssignments.teacher'])
+        $classes = Clazz::with([
+                'course', 
+                'semester', 
+                'mainTeacher', 
+                'teachingAssignments.teacher',
+                'schedules' // Thêm schedules để tính toán số buổi
+            ])
             ->where('status', 'open')
             ->orderBy('start_date', 'desc')
             ->paginate(10);
@@ -20,94 +27,195 @@ class TeachingAssignmentController extends Controller
     }
 
     public function create(Clazz $class)
-{
-    $teachers = Teacher::all();
-    $currentAssignments = $class->teachingAssignments()->with('teacher')->get();
-    
-    return view('class-management.assignments.create', compact('class', 'teachers', 'currentAssignments'));
-}
-
-public function store(Request $request)
-{
-    $request->validate([
-        'class_id' => 'required|exists:classes,id',
-        'teacher_id' => 'required|exists:teachers,id',
-        'main_teacher' => 'nullable|boolean',
-        'assigned_sessions' => 'required|integer|min:1'
-    ]);
-
-    try {
-        DB::beginTransaction();
-
-        // Kiểm tra nếu là main teacher thì hủy main teacher cũ
-        if ($request->main_teacher) {
-            TeachingAssignment::where('class_id', $request->class_id)
-                ->update(['main_teacher' => false]);
-        }
-
-        TeachingAssignment::create([
-            'class_id' => $request->class_id,
-            'teacher_id' => $request->teacher_id,
-            'main_teacher' => $request->main_teacher ?? false,
-            'assigned_sessions' => $request->assigned_sessions
+    {
+        $class->load([
+            'course', 
+            'semester', 
+            'schedules', 
+            'teachingAssignments.teacher',
+            'schedules' // Đảm bảo load schedules
         ]);
 
-        DB::commit();
-        
-        return redirect()->route('teaching-assignments.index')
-            ->with('success', 'Phân công giảng dạy đã được thêm thành công');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Lỗi khi thêm phân công: ' . $e->getMessage());
+        $teachers = Teacher::orderBy('name')->get();
+        $currentAssignments = $class->teachingAssignments;
+
+        // Tính tổng số buổi đã phân công
+        $totalAssignedSessions = $class->teachingAssignments->sum('assigned_sessions');
+        $remainingSessions = $class->schedules->count() - $totalAssignedSessions;
+
+        return view('class-management.assignments.create', compact(
+            'class', 
+            'teachers', 
+            'totalAssignedSessions',
+            'remainingSessions'
+        ));
     }
-}
 
-public function edit(Clazz $class)
-{
-    $teachers = Teacher::all();
-    $assignments = $class->teachingAssignments()->with('teacher')->get();
-    
-    return view('teaching-assignments.edit', compact('class', 'teachers', 'assignments'));
-}
+    public function store(Request $request)
+    {
+        $request->validate([
+            'class_id' => 'required|exists:classes,id',
+            'teacher_id' => 'required|exists:teachers,id',
+            'main_teacher' => 'nullable|boolean',
+            'assigned_sessions' => 'required|integer|min:1'
+        ]);
 
-public function update(Request $request, Clazz $class)
-{
-    $request->validate([
-        'assignments' => 'required|array',
-        'assignments.*.teacher_id' => 'required|exists:teachers,id',
-        'assignments.*.main_teacher' => 'nullable|boolean',
-        'assignments.*.assigned_sessions' => 'required|integer|min:1'
-    ]);
+        try {
+            DB::beginTransaction();
 
-    try {
-        DB::beginTransaction();
+            $class = Clazz::with(['schedules', 'teachingAssignments'])->find($request->class_id);
+            $totalSessions = $class->schedules->count();
+            $assignedSessions = $class->teachingAssignments->sum('assigned_sessions');
+            $remainingSessions = $totalSessions - $assignedSessions;
 
-        // Xóa tất cả phân công cũ
-        $class->teachingAssignments()->delete();
+            // Kiểm tra số buổi phân công không vượt quá số buổi còn lại
+            if ($request->assigned_sessions > $remainingSessions) {
+                return back()->with('error', 'Số buổi phân công vượt quá số buổi còn lại ('.$remainingSessions.' buổi)');
+            }
 
-        // Thêm phân công mới
-        foreach ($request->assignments as $assignment) {
-            // Nếu là main teacher thì hủy main teacher cũ
-            if ($assignment['main_teacher'] ?? false) {
-                TeachingAssignment::where('class_id', $class->id)
+            // Kiểm tra nếu là main teacher thì hủy main teacher cũ
+            if ($request->main_teacher) {
+                TeachingAssignment::where('class_id', $request->class_id)
                     ->update(['main_teacher' => false]);
             }
 
-            TeachingAssignment::create([
-                'class_id' => $class->id,
-                'teacher_id' => $assignment['teacher_id'],
-                'main_teacher' => $assignment['main_teacher'] ?? false,
-                'assigned_sessions' => $assignment['assigned_sessions']
-            ]);
-        }
+            // Kiểm tra giáo viên đã được phân công chưa
+            $existingAssignment = TeachingAssignment::where('class_id', $request->class_id)
+                ->where('teacher_id', $request->teacher_id)
+                ->first();
 
-        DB::commit();
-        
-        return redirect()->route('teaching-assignments.index')
-            ->with('success', 'Cập nhật phân công thành công');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
+            if ($existingAssignment) {
+                return back()->with('error', 'Giảng viên này đã được phân công cho lớp');
+            }
+
+            TeachingAssignment::create([
+                'class_id' => $request->class_id,
+                'teacher_id' => $request->teacher_id,
+                'main_teacher' => $request->main_teacher ?? false,
+                'assigned_sessions' => $request->assigned_sessions
+            ]);
+
+            DB::commit();
+            
+            return redirect()->route('teaching-assignments.index')
+                ->with('success', 'Phân công giảng dạy đã được thêm thành công');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Lỗi khi thêm phân công: ' . $e->getMessage());
+        }
     }
-}
+
+    public function edit(Clazz $class)
+    {
+        $class->load([
+            'course', 
+            'semester', 
+            'schedules', 
+            'teachingAssignments.teacher'
+        ]);
+
+        $teachers = Teacher::orderBy('name')->get();
+        $totalSessions = $class->schedules->count();
+        $totalAssignedSessions = $class->teachingAssignments->sum('assigned_sessions');
+        $remainingSessions = $totalSessions - $totalAssignedSessions;
+
+        // Lấy danh sách teacher chưa được phân công
+        $assignedTeacherIds = $class->teachingAssignments->pluck('teacher_id')->toArray();
+        $availableTeachers = Teacher::whereNotIn('id', $assignedTeacherIds)
+            ->orderBy('name')
+            ->get();
+
+        return view('class-management.assignments.edit', compact(
+            'class',
+            'teachers',
+            'availableTeachers',
+            'totalSessions',
+            'remainingSessions'
+        ));
+    }
+
+    public function update(Request $request, Clazz $class)
+    {
+        $request->validate([
+            'assignments' => 'required|array|min:1',
+            'assignments.*.id' => 'sometimes|exists:teaching_assignments,id',
+            'assignments.*.teacher_id' => 'required|exists:teachers,id',
+            'assignments.*.assigned_sessions' => 'required|integer|min:1',
+            'assignments.*.main_teacher' => 'nullable|boolean'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $totalSessions = $class->schedules->count();
+            $totalAssigned = collect($request->assignments)->sum('assigned_sessions');
+            
+            if ($totalAssigned > $totalSessions) {
+                return back()->with('error', 'Tổng số buổi phân công vượt quá số buổi học của lớp');
+            }
+
+            // Kiểm tra có đúng 1 giảng viên chính
+            $mainTeachersCount = collect($request->assignments)
+                ->filter(fn($a) => $a['main_teacher'] ?? false)
+                ->count();
+                
+            if ($mainTeachersCount !== 1) {
+                return back()->with('error', 'Phải có chính xác 1 giảng viên chính');
+            }
+
+            // Lấy danh sách ID phân công hiện tại để xóa những cái không còn
+            $currentAssignmentIds = $class->teachingAssignments->pluck('id')->toArray();
+            $updatedAssignmentIds = collect($request->assignments)
+                ->pluck('id')
+                ->filter()
+                ->toArray();
+                
+            $idsToDelete = array_diff($currentAssignmentIds, $updatedAssignmentIds);
+            
+            if (!empty($idsToDelete)) {
+                TeachingAssignment::whereIn('id', $idsToDelete)->delete();
+            }
+
+            // Cập nhật hoặc tạo mới phân công
+            foreach ($request->assignments as $assignmentData) {
+                if (isset($assignmentData['id'])) {
+                    // Cập nhật phân công hiện có
+                    $assignment = TeachingAssignment::find($assignmentData['id']);
+                    $assignment->update([
+                        'assigned_sessions' => $assignmentData['assigned_sessions'],
+                        'main_teacher' => $assignmentData['main_teacher'] ?? false
+                    ]);
+                } else {
+                    // Tạo phân công mới
+                    TeachingAssignment::create([
+                        'class_id' => $class->id,
+                        'teacher_id' => $assignmentData['teacher_id'],
+                        'assigned_sessions' => $assignmentData['assigned_sessions'],
+                        'main_teacher' => $assignmentData['main_teacher'] ?? false
+                    ]);
+                }
+            }
+
+            DB::commit();
+            
+            return redirect()->route('teaching-assignments.index')
+                ->with('success', 'Cập nhật phân công thành công');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
+        }
+    }
+
+
+    public function destroy(Clazz $class)
+    {
+        try {
+            $class->teachingAssignments()->delete();
+
+            return back()->with('success', 'Đã xoá toàn bộ phân công giảng dạy của lớp.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Lỗi khi xoá phân công: ' . $e->getMessage());
+        }
+    }
+
 }

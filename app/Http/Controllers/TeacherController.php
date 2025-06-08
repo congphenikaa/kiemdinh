@@ -49,9 +49,9 @@ class TeacherController extends Controller
         try {
             DB::beginTransaction();
             
-            $validated['is_active'] = $request->has('is_active');
             $validated['dob'] = Carbon::parse($validated['dob'])->format('Y-m-d');
             $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
+            $validated['is_active'] = $request->boolean('is_active');
 
             Teacher::create($validated);
             
@@ -102,10 +102,9 @@ class TeacherController extends Controller
 
         try {
             DB::beginTransaction();
-            
-            $validated['is_active'] = $request->has('is_active');
             $validated['dob'] = Carbon::parse($validated['dob'])->format('Y-m-d');
             $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
+            $validated['is_active'] = $request->boolean('is_active');
 
             $teacher->update($validated);
             

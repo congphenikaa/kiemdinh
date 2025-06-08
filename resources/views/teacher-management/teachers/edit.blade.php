@@ -204,8 +204,9 @@
             <div class="md:col-span-2">
                 <div class="flex items-center">
                     <input type="hidden" name="is_active" value="0">
-                    <input type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $teacher->is_active) ? 'checked' : '' }}
-                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <input type="checkbox" id="is_active" name="is_active" value="1"
+                        {{ old('is_active', $teacher->is_active) == '1' ? 'checked' : '' }}
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                     <label for="is_active" class="ml-2 block text-sm text-gray-700">
                         Đang hoạt động
                     </label>

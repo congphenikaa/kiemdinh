@@ -10,12 +10,20 @@
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Học kỳ</th>
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giảng viên chính</th>
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số giảng viên</th>
+    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buổi đã phân công/Tổng buổi</th>
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái phân công</th>
     <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
 @endsection
 
 @section('table_rows')
     @forelse($classes as $index => $clazz)
+    @php
+        $totalAssigned = $clazz->teachingAssignments->sum('assigned_sessions');
+        $totalSessions = $clazz->schedules->count();
+        $hasAssignments = $clazz->teachingAssignments->count() > 0;
+        $isFullyAssigned = $totalAssigned >= $totalSessions;
+        $hasMainTeacher = $clazz->mainTeacher !== null;
+    @endphp
     <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }} hover:bg-gray-100 transition-colors">
         <td class="px-4 py-4 text-sm text-gray-500">
             {{ ($classes->currentPage() - 1) * $classes->perPage() + $index + 1 }}
@@ -28,19 +36,30 @@
             {{ $clazz->semester->name ?? 'Chưa có' }}
         </td>
         <td class="px-4 py-4 text-sm text-gray-700">
-            {{ $clazz->mainTeacher->first()->name ?? 'Chưa phân công' }}
+            {{ $clazz->mainTeacher?->name ?? 'Chưa phân công' }}
         </td>
         <td class="px-4 py-4 text-sm text-gray-700">
             {{ $clazz->teachingAssignments->count() }}
         </td>
+        <td class="px-4 py-4 text-sm text-gray-700">
+            {{ $totalAssigned }}/{{ $totalSessions }}
+        </td>
         <td class="px-4 py-4 text-sm">
-            @if($clazz->mainTeacher->count() > 0)
+            @if($hasMainTeacher && $isFullyAssigned)
                 <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-check-circle mr-1"></i> Đã phân công
+                    <i class="fas fa-check-circle mr-1"></i> Hoàn thành
+                </span>
+            @elseif($hasMainTeacher)
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                    <i class="fas fa-info-circle mr-1"></i> Đã phân công
+                </span>
+            @elseif($hasAssignments)
+                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                    <i class="fas fa-exclamation-circle mr-1"></i> Thiếu GV chính
                 </span>
             @else
-                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-exclamation-circle mr-1"></i> Chưa phân công
+                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                    <i class="fas fa-times-circle mr-1"></i> Chưa phân công
                 </span>
             @endif
         </td>
@@ -50,26 +69,23 @@
                title="Thêm phân công">
                 <i class="fas fa-plus mr-1"></i> Thêm
             </a>
-            @if($clazz->teachingAssignments->count() > 0)
+            @if($hasAssignments)
                 <a href="{{ route('teaching-assignments.edit', $clazz) }}" 
                    class="inline-flex items-center px-3 py-1 border border-yellow-300 rounded-md text-yellow-700 bg-yellow-50 hover:bg-yellow-100 transition-colors"
                    title="Chỉnh sửa phân công">
                     <i class="fas fa-edit mr-1"></i> Sửa
                 </a>
-                <form action="{{ route('teaching-assignments.destroy', $clazz) }}" method="POST" class="inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors" 
-                            title="Xóa phân công">
-                        <i class="fas fa-trash-alt mr-1"></i> Xóa
-                    </button>
-                </form>
+                <button class="btn-delete inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                        title="Xóa"
+                        data-id="{{ $clazz->id }}"
+                    <i class="fas fa-trash-alt mr-1"></i> Xóa
+                </button>
             @endif
         </td>
     </tr>
     @empty
     <tr>
-        <td colspan="8" class="px-6 py-12 text-center">
+        <td colspan="9" class="px-6 py-12 text-center">
             <div class="flex flex-col items-center justify-center">
                 <i class="fas fa-chalkboard-teacher text-4xl text-gray-300 mb-4"></i>
                 <h4 class="text-lg font-medium text-gray-500">Không có lớp học nào đang mở</h4>

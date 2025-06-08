@@ -38,7 +38,7 @@ class SemesterController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:semesters,name,NULL,id,academic_year_id,'.$request->academic_year_id,
             'academic_year_id' => 'required|exists:academic_years,id',
             'start_date' => 'required|date',
             'end_date' => [
@@ -49,12 +49,10 @@ class SemesterController extends Controller
                     $startDate = Carbon::parse($request->start_date);
                     $endDate = Carbon::parse($value);
                     
-                    // Check semester duration (max 6 months)
                     if ($startDate->diffInMonths($endDate) > 6) {
                         $fail('The semester duration cannot exceed 6 months.');
                     }
                     
-                    // Check if end date is within academic year
                     $academicYear = AcademicYear::find($request->academic_year_id);
                     if ($academicYear && $endDate->gt(Carbon::parse($academicYear->end_date))) {
                         $fail('The semester end date cannot exceed the academic year end date.');
@@ -64,14 +62,7 @@ class SemesterController extends Controller
             'type' => [
                 'required',
                 Rule::in([1, 2]),
-                function ($attribute, $value, $fail) use ($request) {
-                    // Check for duplicate semester type in academic year
-                    if (Semester::where('academic_year_id', $request->academic_year_id)
-                        ->where('type', $value)
-                        ->exists()) {
-                        $fail('This academic year already has a semester of this type.');
-                    }
-                }
+                // Bỏ validation kiểm tra trùng type
             ],
             'is_active' => 'sometimes|boolean'
         ]);
@@ -119,7 +110,12 @@ class SemesterController extends Controller
     public function update(Request $request, Semester $semester)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('semesters')->ignore($semester->id)->where('academic_year_id', $request->academic_year_id)
+            ],
             'academic_year_id' => 'required|exists:academic_years,id',
             'start_date' => 'required|date',
             'end_date' => [
@@ -130,12 +126,10 @@ class SemesterController extends Controller
                     $startDate = Carbon::parse($request->start_date);
                     $endDate = Carbon::parse($value);
                     
-                    // Check semester duration (max 6 months)
                     if ($startDate->diffInMonths($endDate) > 6) {
                         $fail('The semester duration cannot exceed 6 months.');
                     }
                     
-                    // Check if end date is within academic year
                     $academicYear = AcademicYear::find($request->academic_year_id);
                     if ($academicYear && $endDate->gt(Carbon::parse($academicYear->end_date))) {
                         $fail('The semester end date cannot exceed the academic year end date.');
@@ -145,15 +139,7 @@ class SemesterController extends Controller
             'type' => [
                 'required',
                 Rule::in([1, 2]),
-                function ($attribute, $value, $fail) use ($request, $semester) {
-                    // Check for duplicate semester type in academic year (excluding current)
-                    if (Semester::where('academic_year_id', $request->academic_year_id)
-                        ->where('type', $value)
-                        ->where('id', '!=', $semester->id)
-                        ->exists()) {
-                        $fail('This academic year already has a semester of this type.');
-                    }
-                }
+                // Bỏ validation kiểm tra trùng type
             ],
             'is_active' => 'sometimes|boolean'
         ]);

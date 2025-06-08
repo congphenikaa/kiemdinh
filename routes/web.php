@@ -44,7 +44,24 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('academic-years', AcademicYearController::class);
     Route::resource('semesters', SemesterController::class);
     Route::resource('classes', ClassController::class);
-    Route::resource('teaching-assignments', TeachingAssignmentController::class);
+
+    // Route resource chuẩn (nhưng loại bỏ create và destroy vì đã có route riêng)
+    Route::resource('teaching-assignments', TeachingAssignmentController::class)
+        ->except(['create', 'destroy']);
+
+    // Route riêng cho create (tạo phân công mới)
+    Route::get('teaching-assignments/create/{class}', [TeachingAssignmentController::class, 'create'])
+        ->name('teaching-assignments.create');
+
+    Route::get('teaching-assignments/{class}/edit', [TeachingAssignmentController::class, 'edit'])
+    ->name('teaching-assignments.edit');
+    Route::put('teaching-assignments/{class}', [TeachingAssignmentController::class, 'update'])
+        ->name('teaching-assignments.update');
+
+    // Route riêng cho destroy (xóa toàn bộ phân công)
+    Route::delete('teaching-assignments/{class}', [TeachingAssignmentController::class, 'destroy'])
+        ->name('teaching-assignments.destroy');
+
     Route::resource('schedules', ScheduleController::class);
     Route::get('class-reports', [ClassReportController::class, 'index'])->name('class-reports.index');
 

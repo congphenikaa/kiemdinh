@@ -40,7 +40,7 @@ class Clazz extends Model
 
     public function schedules()
     {
-        return $this->hasMany(Schedule::class);
+        return $this->hasMany(Schedule::class, 'class_id');
     }
 
     public function teachingAssignments()
@@ -48,27 +48,32 @@ class Clazz extends Model
         return $this->hasMany(TeachingAssignment::class, 'class_id'); 
     }
 
-   public function teachers()
-{
-    return $this->belongsToMany(Teacher::class, 'teaching_assignments', 'class_id', 'teacher_id')
-               ->withPivot('main_teacher', 'assigned_sessions');
-}
+    public function teachers()
+    {
+        return $this->belongsToMany(Teacher::class, 'teaching_assignments', 'class_id', 'teacher_id')
+                ->withPivot('main_teacher', 'assigned_sessions');
+    }
 
     public function mainTeacher()
-{
-    return $this->belongsToMany(Teacher::class, 'teaching_assignments', 'class_id', 'teacher_id')
-               ->wherePivot('main_teacher', true)
-               ->withPivot('assigned_sessions');
-}
-
-    public function statistics()
     {
-        return $this->hasOne(ClassStatistics::class);
+        return $this->hasOneThrough(
+            Teacher::class,
+            TeachingAssignment::class,
+            'class_id',    // Foreign key on teaching_assignments table
+            'id',         // Foreign key on teachers table
+            'id',         // Local key on classes table
+            'teacher_id'  // Local key on teaching_assignments table
+        )->where('teaching_assignments.main_teacher', true);
     }
 
-    public function payments()
-    {
-        return $this->hasMany(TeacherPayment::class);
-    }
+        public function statistics()
+        {
+            return $this->hasOne(ClassStatistics::class);
+        }
+
+        public function payments()
+        {
+            return $this->hasMany(TeacherPayment::class);
+        }
     
 }

@@ -46,7 +46,8 @@ class AcademicYearController extends Controller
             $validated['end_date'] = Carbon::parse($validated['end_date'])->format('Y-m-d');
             
             // Properly handle checkbox value
-            $validated['is_active'] = $request->boolean('is_active');
+            $validated['is_active'] = $request->has('is_active') ? true : false;
+
 
             // If setting this as active, deactivate all others
             if ($validated['is_active']) {
@@ -94,7 +95,7 @@ class AcademicYearController extends Controller
             $validated['end_date'] = Carbon::parse($validated['end_date'])->format('Y-m-d');
             
             // Properly handle checkbox value
-            $validated['is_active'] = $request->boolean('is_active');
+            $validated['is_active'] = $request->has('is_active') ? true : false;
 
             // If setting this as active, deactivate all others
             if ($validated['is_active']) {
