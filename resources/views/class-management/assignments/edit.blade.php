@@ -145,14 +145,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // Xử lý xóa phân công
     document.querySelectorAll('.remove-assignment').forEach(button => {
         button.addEventListener('click', function() {
+            const row = this.closest('tr');
             if (confirm('Bạn có chắc chắn muốn xóa phân công này?')) {
-                this.closest('tr').remove();
+                // Nếu là phân công đã tồn tại (có ID), cần đánh dấu để xóa
+                const assignmentId = row.dataset.assignmentId;
+                if (assignmentId) {
+                    // Tạo input ẩn để đánh dấu phân công cần xóa
+                    const deleteInput = document.createElement('input');
+                    deleteInput.type = 'hidden';
+                    deleteInput.name = 'deleted_assignments[]';
+                    deleteInput.value = assignmentId;
+                    row.parentNode.appendChild(deleteInput);
+                }
+                
+                // Xóa hàng khỏi hiển thị
+                row.remove();
                 updateRemainingSessions();
+                
+                // Đánh lại chỉ số các phân công còn lại
+                reindexAssignments();
             }
         });
     });
 
-    // Thêm giảng viên mới
+    // Hàm đánh lại chỉ số phân công sau khi xóa
+    function reindexAssignments() {
+        const rows = document.querySelectorAll('#assignments-table tr');
+        rows.forEach((row, index) => {
+            // Cập nhật tên input với chỉ số mới
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                const name = input.name.replace(/assignments\[\d+\]/g, `assignments[${index}]`);
+                input.name = name;
+            });
+            
+            // Cập nhật giá trị radio button
+            const radio = row.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.value = index;
+            }
+        });
+    }
+
+   // Thêm giảng viên mới
     const addTeacherBtn = document.getElementById('add-teacher-btn');
     if (addTeacherBtn) {
         addTeacherBtn.addEventListener('click', function() {
@@ -173,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Tạo index mới
+            // Tạo chỉ số mới
             const newIndex = document.querySelectorAll('#assignments-table tr').length;
             
             // Thêm hàng mới vào bảng
@@ -186,18 +221,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
                 <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                     <input type="number" 
-                           name="assignments[${newIndex}][assigned_sessions]" 
-                           value="${assignedSessions}"
-                           min="1"
-                           max="{{ $totalSessions }}"
-                           class="w-20 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        name="assignments[${newIndex}][assigned_sessions]" 
+                        value="${assignedSessions}"
+                        min="1"
+                        max="{{ $totalSessions }}"
+                        class="w-20 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </td>
                 <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                     <div class="flex items-center">
                         <input type="radio" 
-                               name="main_teacher" 
-                               value="${newIndex}" 
-                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                            name="main_teacher" 
+                            value="${newIndex}" 
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                         <span class="ml-2">Giảng viên chính</span>
                     </div>
                     <input type="hidden" name="assignments[${newIndex}][main_teacher]" value="0">
@@ -227,6 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (confirm('Bạn có chắc chắn muốn xóa phân công này?')) {
                     this.closest('tr').remove();
                     updateRemainingSessions();
+                    reindexAssignments();
                 }
             });
             

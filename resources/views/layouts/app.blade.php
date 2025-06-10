@@ -79,7 +79,7 @@
                         <li class="{{ request()->routeIs('teacher-reports.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('teacher-reports.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-chart-bar w-5 mr-3 text-center"></i>
-                                <span>1.5. Thống kê giáo viên</span>
+                                <span>1.4. Thống kê giáo viên</span>
                             </a>
                         </li>
                     </ul>
@@ -183,7 +183,7 @@
                         <li class="{{ request()->routeIs('teacher-payments.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('teacher-payments.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-calculator w-5 mr-3 text-center"></i>
-                                <span>3.4. Tính tiền dạy theo kì</span>
+                                <span>3.3. Tính tiền dạy theo kỳ</span>
                             </a>
                         </li>
                         
@@ -191,7 +191,7 @@
                         <li class="{{ request()->routeIs('payment-batches.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('payment-batches.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-file-invoice-dollar w-5 mr-3 text-center"></i>
-                                <span>3.5. Đợt thanh toán</span>
+                                <span>3.4. Đợt thanh toán</span>
                             </a>
                         </li>
                     </ul>
@@ -288,20 +288,13 @@
     </div>
 
     <!-- Modal for confirmation -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 hidden" id="confirm-modal">
-        <div class="flex items-center justify-center min-h-screen">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
-                <div class="flex justify-between items-center border-b p-4">
-                    <h4 class="text-lg font-semibold" id="modal-title">Xác nhận</h4>
-                    <button class="text-gray-500 hover:text-gray-700 close-modal">&times;</button>
-                </div>
-                <div class="p-4">
-                    <p id="modal-message">Bạn có chắc chắn muốn xóa?</p>
-                </div>
-                <div class="flex justify-end space-x-2 border-t p-4">
-                    <button class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded" id="modal-cancel">Hủy</button>
-                    <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded" id="modal-confirm">Xác nhận</button>
-                </div>
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+            <h2 id="modal-title" class="text-lg font-semibold mb-4">Xác nhận</h2>
+            <p id="modal-message" class="text-gray-600 mb-6">Bạn có chắc chắn muốn xóa?</p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="document.getElementById('confirm-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Hủy</button>
+                <button id="modal-confirm" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Xóa</button>
             </div>
         </div>
     </div>
