@@ -1,67 +1,99 @@
 @extends('templates.edit', [
-    'entityName' => 'Hệ số sĩ số',
+    'entityName' => 'Hệ số lớp học',
     'routePrefix' => 'class-size-coefficients',
-    'model' => $coefficient
+    'model' => $classSizeCoefficient
 ])
 
 @section('form_fields')
     <div class="space-y-6">
-        <!-- Sĩ số tối thiểu -->
+        <!-- Academic Year -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-1">
-                <label for="min_students" class="block text-sm font-medium text-gray-700 pt-2">
-                    Sĩ số tối thiểu <span class="text-red-500">*</span>
+                <label for="academic_year_id" class="block text-sm font-medium text-gray-700">
+                    Năm học <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Số học sinh tối thiểu trong lớp</p>
+                <p class="mt-1 text-xs text-gray-500">Chọn năm học áp dụng</p>
             </div>
             <div class="md:col-span-2">
-                <input type="number" id="min_students" name="min_students" 
-                       value="{{ old('min_students', $coefficient->min_students) }}" 
-                       min="0" required
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                       placeholder="Nhập sĩ số tối thiểu">
-                @error('min_students')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-        </div>
-        
-        <!-- Sĩ số tối đa -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="md:col-span-1">
-                <label for="max_students" class="block text-sm font-medium text-gray-700 pt-2">
-                    Sĩ số tối đa <span class="text-red-500">*</span>
-                </label>
-                <p class="mt-1 text-xs text-gray-500">Phải lớn hơn sĩ số tối thiểu</p>
-            </div>
-            <div class="md:col-span-2">
-                <input type="number" id="max_students" name="max_students" 
-                       value="{{ old('max_students', $coefficient->max_students) }}" 
-                       min="{{ old('min_students', $coefficient->min_students) + 1 }}" required
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                       placeholder="Nhập sĩ số tối đa">
-                @error('max_students')
+                <select id="academic_year_id" name="academic_year_id" required
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    @foreach($academicYears as $year)
+                        <option value="{{ $year->id }}" {{ old('academic_year_id', $classSizeCoefficient->academic_year_id) == $year->id ? 'selected' : '' }}>
+                            {{ $year->name }} ({{ $year->start_date->format('d/m/Y') }} - {{ $year->end_date->format('d/m/Y') }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('academic_year_id')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
         </div>
 
-        <!-- Hệ số -->
+        <!-- Student Range -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-1">
-                <label for="coefficient" class="block text-sm font-medium text-gray-700 pt-2">
+                <label class="block text-sm font-medium text-gray-700">
+                    Khoảng sinh viên <span class="text-red-500">*</span>
+                </label>
+                <p class="mt-1 text-xs text-gray-500">Nhập số sinh viên tối thiểu và tối đa</p>
+            </div>
+            <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                <div>
+                    <input type="number" name="min_students" id="min_students" 
+                           value="{{ old('min_students', $classSizeCoefficient->min_students) }}" min="1" required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                           placeholder="Từ">
+                    @error('min_students')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <input type="number" name="max_students" id="max_students" 
+                           value="{{ old('max_students', $classSizeCoefficient->max_students) }}" min="2" required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                           placeholder="Đến">
+                    @error('max_students')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        <!-- Coefficient -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-1">
+                <label for="coefficient" class="block text-sm font-medium text-gray-700">
                     Hệ số <span class="text-red-500">*</span>
                 </label>
                 <p class="mt-1 text-xs text-gray-500">Hệ số nhân cho lương</p>
             </div>
             <div class="md:col-span-2">
-                <input type="number" step="0.01" min="0" id="coefficient" name="coefficient" 
-                       value="{{ old('coefficient', $coefficient->coefficient) }}" required
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                       placeholder="Nhập hệ số">
+                <div class="relative rounded-md shadow-sm">
+                    <input type="number" step="0.01" min="0" name="coefficient" id="coefficient" 
+                           value="{{ old('coefficient', $classSizeCoefficient->coefficient) }}" required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                           placeholder="Nhập hệ số">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">x</span>
+                    </div>
+                </div>
                 @error('coefficient')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        Hệ số lớp học sẽ được áp dụng tự động khi tính lương giảng viên dựa trên số lượng sinh viên đăng ký lớp.
+                    </p>
+                </div>
             </div>
         </div>
     </div>

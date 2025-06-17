@@ -11,13 +11,7 @@ class TeachingAssignment extends Model
 
     protected $fillable = [
         'class_id',
-        'teacher_id',
-        'main_teacher',
-        'assigned_sessions'
-    ];
-
-    protected $casts = [
-        'main_teacher' => 'boolean'
+        'teacher_id'
     ];
 
     public function teacher()
@@ -27,7 +21,6 @@ class TeachingAssignment extends Model
 
     public function class()
     {
-        return $this->belongsTo(Clazz::class, 'class_id'); 
+        return $this->belongsTo(Clazz::class);
     }
-
 }

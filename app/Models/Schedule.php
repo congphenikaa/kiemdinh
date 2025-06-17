@@ -15,9 +15,6 @@ class Schedule extends Model
         'start_time',
         'end_time',
         'date',
-        'session_type',
-        'is_cancelled',
-        'cancellation_reason',
         'session_number',
         'is_taught'
     ];
@@ -25,7 +22,7 @@ class Schedule extends Model
     protected $casts = [
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
-        'is_cancelled' => 'boolean',
+        'date' => 'date',
         'is_taught' => 'boolean'
     ];
 

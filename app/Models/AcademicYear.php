@@ -16,8 +16,29 @@ class AcademicYear extends Model
         'is_active'
     ];
 
+    protected $casts = [
+        'start_date' => 'date:Y-m-d',
+        'end_date' => 'date:Y-m-d',
+        'is_active' => 'boolean'
+    ];
+
     public function semesters()
     {
         return $this->hasMany(Semester::class);
+    }
+
+    public function classSizeCoefficients()
+    {
+        return $this->hasMany(ClassSizeCoefficient::class);
+    }
+
+    public function paymentConfigs()
+    {
+        return $this->hasMany(PaymentConfig::class);
+    }
+
+    public function classes()
+    {
+        return $this->hasManyThrough(Clazz::class, Semester::class);
     }
 }

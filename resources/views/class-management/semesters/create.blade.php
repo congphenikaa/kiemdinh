@@ -11,7 +11,7 @@
                 <label for="name" class="block text-sm font-medium text-gray-700 pt-2">
                     Tên kỳ học <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Ví dụ: Kỳ I Đợt 1, Kỳ I Đợt 2..</p>
+                <p class="mt-1 text-xs text-gray-500">Ví dụ: Kỳ I Đợt 1, Kỳ II Đợt 2</p>
             </div>
             <div class="md:col-span-2">
                 <input type="text" id="name" name="name" value="{{ old('name') }}" required
@@ -37,7 +37,7 @@
                     <option value="">-- Chọn năm học --</option>
                     @foreach($academicYears as $year)
                         <option value="{{ $year->id }}" {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>
-                            {{ $year->name }}
+                            {{ $year->name }} ({{ $year->start_date->format('d/m/Y') }} - {{ $year->end_date->format('d/m/Y') }})
                         </option>
                     @endforeach
                 </select>
@@ -87,14 +87,14 @@
                 <label for="type" class="block text-sm font-medium text-gray-700 pt-2">
                     Loại kỳ học <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">1 = Học kỳ I, 2 = Học kỳ II</p>
+                <p class="mt-1 text-xs text-gray-500">Chọn loại học kỳ</p>
             </div>
             <div class="md:col-span-2">
                 <select id="type" name="type" required
                         class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     <option value="">-- Chọn loại kỳ học --</option>
-                    <option value="1" {{ old('type') == 1 ? 'selected' : '' }}>Học kỳ I</option>
-                    <option value="2" {{ old('type') == 2 ? 'selected' : '' }}>Học kỳ II</option>
+                    <option value="1" {{ old('type') == '1' ? 'selected' : '' }}>Học kỳ I</option>
+                    <option value="2" {{ old('type') == '2' ? 'selected' : '' }}>Học kỳ II</option>
                 </select>
                 @error('type')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -108,12 +108,11 @@
                 <label class="block text-sm font-medium text-gray-700 pt-2">
                     Trạng thái
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Kỳ học hiện tại</p>
+                <p class="mt-1 text-xs text-gray-500">Kích hoạt làm học kỳ hiện tại</p>
             </div>
             <div class="md:col-span-2">
                 <div class="relative flex items-start">
                     <div class="flex items-center h-5">
-                        <!-- Đặt hidden input trước để gửi '0' nếu checkbox không được chọn -->
                         <input type="hidden" name="is_active" value="0">
                         <input id="is_active" name="is_active" type="checkbox" value="1"
                             {{ old('is_active') ? 'checked' : '' }}
@@ -121,10 +120,10 @@
                     </div>
                     <div class="ml-3 text-sm">
                         <label for="is_active" class="font-medium text-gray-700">
-                            Đặt làm kỳ học hiện tại
+                            Kích hoạt học kỳ này
                         </label>
                         <p class="text-xs text-gray-500">
-                            Khi chọn, các kỳ học khác sẽ được đặt thành không hoạt động
+                            Khi chọn, tất cả các kỳ học khác sẽ được đặt thành không hoạt động
                         </p>
                     </div>
                 </div>

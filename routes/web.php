@@ -43,6 +43,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('courses', CourseController::class);
     Route::resource('academic-years', AcademicYearController::class);
     Route::resource('semesters', SemesterController::class);
+    Route::patch('/{semester}/toggle-active', [SemesterController::class, 'toggleActive'])->name('semesters.toggleActive');
     Route::resource('classes', ClassController::class);
 
     Route::resource('teaching-assignments', TeachingAssignmentController::class)

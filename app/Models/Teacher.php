@@ -48,7 +48,8 @@ class Teacher extends Model
     public function classes()
     {
         return $this->belongsToMany(Clazz::class, 'teaching_assignments')
-                   ->withPivot('main_teacher', 'assigned_sessions');
+            ->using(TeachingAssignment::class)
+            ->withPivot('id');
     }
 
     public function payments()
@@ -60,6 +61,4 @@ class Teacher extends Model
     {
         return $this->hasMany(TeacherStatistics::class);
     }
-
-    
 }

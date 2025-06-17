@@ -15,6 +15,7 @@ return new class extends Migration
         $table->id();
         $table->integer('min_students');
         $table->integer('max_students')->nullable();
+        $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
         $table->decimal('coefficient', 3, 2);
         $table->timestamps();
     });

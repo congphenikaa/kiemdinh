@@ -11,9 +11,6 @@ use Illuminate\Validation\Rule;
 
 class SemesterController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $semesters = Semester::with('academicYear')
@@ -23,18 +20,12 @@ class SemesterController extends Controller
         return view('class-management.semesters.index', compact('semesters'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
         return view('class-management.semesters.create', compact('academicYears'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -49,64 +40,43 @@ class SemesterController extends Controller
                     $startDate = Carbon::parse($request->start_date);
                     $endDate = Carbon::parse($value);
                     
-                    if ($startDate->diffInMonths($endDate) > 6) {
-                        $fail('The semester duration cannot exceed 6 months.');
-                    }
-                    
                     $academicYear = AcademicYear::find($request->academic_year_id);
-                    if ($academicYear && $endDate->gt(Carbon::parse($academicYear->end_date))) {
-                        $fail('The semester end date cannot exceed the academic year end date.');
+                    if ($academicYear) {
+                        if ($startDate->lt(Carbon::parse($academicYear->start_date))) {
+                            $fail('The semester start date cannot be before the academic year start date.');
+                        }
+                        if ($endDate->gt(Carbon::parse($academicYear->end_date))) {
+                            $fail('The semester end date cannot exceed the academic year end date.');
+                        }
                     }
                 }
             ],
-            'type' => [
-                'required',
-                Rule::in([1, 2]),
-                // Bỏ validation kiểm tra trùng type
-            ],
+            'type' => ['required', Rule::in(['1', '2'])],
             'is_active' => 'sometimes|boolean'
         ]);
 
-        try {
-            DB::beginTransaction();
-
-            // Format dates using Carbon
+        DB::transaction(function () use ($validated, $request) {
             $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
             $validated['end_date'] = Carbon::parse($validated['end_date'])->format('Y-m-d');
-            
-            // Properly handle checkbox value
             $validated['is_active'] = $request->boolean('is_active');
 
-            // If setting this as active, deactivate all others
             if ($validated['is_active']) {
                 Semester::where('is_active', true)->update(['is_active' => false]);
             }
 
             Semester::create($validated);
+        });
 
-            DB::commit();
-
-            return redirect()->route('semesters.index')
-                ->with('success', 'Semester created successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withInput()
-                ->with('error', 'Error creating semester: ' . $e->getMessage());
-        }
+        return redirect()->route('semesters.index')
+            ->with('success', 'Semester created successfully.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Semester $semester)
     {
         $academicYears = AcademicYear::orderBy('start_date', 'desc')->get();
         return view('class-management.semesters.edit', compact('semester', 'academicYears'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Semester $semester)
     {
         $validated = $request->validate([
@@ -126,35 +96,26 @@ class SemesterController extends Controller
                     $startDate = Carbon::parse($request->start_date);
                     $endDate = Carbon::parse($value);
                     
-                    if ($startDate->diffInMonths($endDate) > 6) {
-                        $fail('The semester duration cannot exceed 6 months.');
-                    }
-                    
                     $academicYear = AcademicYear::find($request->academic_year_id);
-                    if ($academicYear && $endDate->gt(Carbon::parse($academicYear->end_date))) {
-                        $fail('The semester end date cannot exceed the academic year end date.');
+                    if ($academicYear) {
+                        if ($startDate->lt(Carbon::parse($academicYear->start_date))) {
+                            $fail('The semester start date cannot be before the academic year start date.');
+                        }
+                        if ($endDate->gt(Carbon::parse($academicYear->end_date))) {
+                            $fail('The semester end date cannot exceed the academic year end date.');
+                        }
                     }
                 }
             ],
-            'type' => [
-                'required',
-                Rule::in([1, 2]),
-                // Bỏ validation kiểm tra trùng type
-            ],
+            'type' => ['required', Rule::in(['1', '2'])],
             'is_active' => 'sometimes|boolean'
         ]);
 
-        try {
-            DB::beginTransaction();
-
-            // Format dates using Carbon
+        DB::transaction(function () use ($validated, $request, $semester) {
             $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
             $validated['end_date'] = Carbon::parse($validated['end_date'])->format('Y-m-d');
-            
-            // Properly handle checkbox value
             $validated['is_active'] = $request->boolean('is_active');
 
-            // If setting this as active, deactivate all others
             if ($validated['is_active']) {
                 Semester::where('id', '!=', $semester->id)
                     ->where('is_active', true)
@@ -162,67 +123,34 @@ class SemesterController extends Controller
             }
 
             $semester->update($validated);
+        });
 
-            DB::commit();
-
-            return redirect()->route('semesters.index')
-                ->with('success', 'Semester updated successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withInput()
-                ->with('error', 'Error updating semester: ' . $e->getMessage());
-        }
+        return redirect()->route('semesters.index')
+            ->with('success', 'Semester updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Semester $semester)
     {
-        try {
-            DB::beginTransaction();
-
-            // Prevent deletion if there are associated records
-            if ($semester->classes()->exists()) {
-                return redirect()->route('semesters.index')
-                    ->with('error', 'Cannot delete semester with associated classes.');
-            }
-
-            if ($semester->teacherPayments()->exists()) {
-                return redirect()->route('semesters.index')
-                    ->with('error', 'Cannot delete semester with associated teacher payments.');
-            }
-
-            if ($semester->paymentBatches()->exists()) {
-                return redirect()->route('semesters.index')
-                    ->with('error', 'Cannot delete semester with associated payment batches.');
-            }
-
-            $semester->delete();
-
-            DB::commit();
-
+        if ($semester->classes()->exists() || 
+            $semester->teacherPayments()->exists() || 
+            $semester->paymentBatches()->exists()) {
             return redirect()->route('semesters.index')
-                ->with('success', 'Semester deleted successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error deleting semester: ' . $e->getMessage());
+                ->with('error', 'Cannot delete semester with associated records.');
         }
+
+        $semester->delete();
+
+        return redirect()->route('semesters.index')
+            ->with('success', 'Semester deleted successfully.');
     }
 
-    /**
-     * Toggle active status of semester
-     */
     public function toggleActive(Semester $semester)
     {
-        try {
-            DB::beginTransaction();
-
+        DB::transaction(function () use ($semester) {
             if ($semester->is_active) {
                 $semester->update(['is_active' => false]);
                 $message = 'Semester deactivated successfully.';
             } else {
-                // Deactivate all other semesters first
                 Semester::where('id', '!=', $semester->id)
                     ->where('is_active', true)
                     ->update(['is_active' => false]);
@@ -230,14 +158,8 @@ class SemesterController extends Controller
                 $semester->update(['is_active' => true]);
                 $message = 'Semester activated successfully (other semesters were deactivated).';
             }
+        });
 
-            DB::commit();
-
-            return redirect()->back()
-                ->with('success', $message);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error toggling semester status: ' . $e->getMessage());
-        }
+        return redirect()->back()->with('success', $message);
     }
 }

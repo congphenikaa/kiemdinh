@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('class_id')->constrained();
             $table->integer('total_sessions_taught')->default(0);
-            $table->integer('total_sessions_cancelled')->default(0);
             $table->decimal('average_attendance', 5, 2)->nullable();
             $table->timestamps();
         });

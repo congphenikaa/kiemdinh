@@ -12,7 +12,6 @@ class ClassStatistics extends Model
     protected $fillable = [
         'class_id',
         'total_sessions_taught',
-        'total_sessions_cancelled',
         'average_attendance'
     ];
 

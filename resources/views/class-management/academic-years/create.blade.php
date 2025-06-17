@@ -73,9 +73,8 @@
                 <div class="relative flex items-start">
                     <div class="flex items-center h-5">
                         <input id="is_active" name="is_active" type="checkbox" value="1"
-                            {{ old('is_active', isset($academicYear) ? $academicYear->is_active : false) ? 'checked' : '' }}
+                            {{ old('is_active', false) ? 'checked' : '' }}
                             class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
-                        <!-- Add a hidden input to ensure false value is sent when unchecked -->
                         <input type="hidden" name="is_active" value="0">
                     </div>
                     <div class="ml-3 text-sm">

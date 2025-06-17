@@ -40,40 +40,28 @@ class Clazz extends Model
 
     public function schedules()
     {
-        return $this->hasMany(Schedule::class, 'class_id');
+        return $this->hasMany(Schedule::class);
     }
 
     public function teachingAssignments()
     {
-        return $this->hasMany(TeachingAssignment::class, 'class_id'); 
+        return $this->hasMany(TeachingAssignment::class);
     }
 
     public function teachers()
     {
-        return $this->belongsToMany(Teacher::class, 'teaching_assignments', 'class_id', 'teacher_id')
-                ->withPivot('main_teacher', 'assigned_sessions');
+        return $this->belongsToMany(Teacher::class, 'teaching_assignments')
+            ->using(TeachingAssignment::class)
+            ->withPivot('id');
     }
 
-    public function mainTeacher()
+    public function statistics()
     {
-        return $this->hasOneThrough(
-            Teacher::class,
-            TeachingAssignment::class,
-            'class_id',    // Foreign key on teaching_assignments table
-            'id',         // Foreign key on teachers table
-            'id',         // Local key on classes table
-            'teacher_id'  // Local key on teaching_assignments table
-        )->where('teaching_assignments.main_teacher', true);
+        return $this->hasOne(ClassStatistics::class);
     }
 
-        public function statistics()
-        {
-            return $this->hasOne(ClassStatistics::class);
-        }
-
-        public function payments()
-        {
-            return $this->hasMany(TeacherPayment::class);
-        }
-    
+    public function payments()
+    {
+        return $this->hasMany(TeacherPayment::class);
+    }
 }
