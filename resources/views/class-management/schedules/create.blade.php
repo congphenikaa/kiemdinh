@@ -18,55 +18,51 @@
                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     <option value="">-- Chọn lớp học --</option>
                     @foreach($classes as $class)
-                        <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>
-                            {{ $class->class_code }} - {{ $class->course->name }}
+                        <option value="{{ $class->id }}" data-total-sessions="{{ $class->course->total_sessions }}">
+                            {{ $class->class_code }} - {{ $class->course->name }} ({{ $class->semester->academicYear->name }})
                         </option>
                     @endforeach
                 </select>
+                <div id="class-info" class="mt-2 text-sm text-gray-600 hidden">
+                    Số buổi cần tạo: <span id="total-sessions">0</span>
+                </div>
                 @error('class_id')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
         </div>
 
-        {{-- Ngày bắt đầu --}}
+        {{-- Khoảng thời gian --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-1">
-                <label for="start_date" class="block text-sm font-medium text-gray-700 pt-2">
-                    Ngày bắt đầu <span class="text-red-500">*</span>
+                <label class="block text-sm font-medium text-gray-700 pt-2">
+                    Khoảng thời gian <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Ngày bắt đầu lịch học</p>
+                <p class="mt-1 text-xs text-gray-500">Chọn khoảng thời gian tổ chức lớp</p>
             </div>
             <div class="md:col-span-2">
-                <input type="date" id="start_date" name="start_date" 
-                       value="{{ old('start_date', now()->format('Y-m-d')) }}" required
-                       min="{{ now()->format('Y-m-d') }}"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="start_date" class="block text-xs font-medium text-gray-500">Ngày bắt đầu</label>
+                        <input type="date" id="start_date" name="start_date" required
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="end_date" class="block text-xs font-medium text-gray-500">Ngày kết thúc</label>
+                        <input type="date" id="end_date" name="end_date" required
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                </div>
                 @error('start_date')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-            </div>
-        </div>
-
-        {{-- Số buổi học --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="md:col-span-1">
-                <label for="total_sessions" class="block text-sm font-medium text-gray-700 pt-2">
-                    Số buổi học <span class="text-red-500">*</span>
-                </label>
-                <p class="mt-1 text-xs text-gray-500">Tổng số buổi học cần tạo</p>
-            </div>
-            <div class="md:col-span-2">
-                <input type="number" id="total_sessions" name="total_sessions" 
-                       value="{{ old('total_sessions', 15) }}" min="1" max="100" required
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                @error('total_sessions')
+                @error('end_date')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
         </div>
 
-        {{-- Ngày học trong tuần --}}
+        {{-- Ngày trong tuần --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-1">
                 <label class="block text-sm font-medium text-gray-700 pt-2">
@@ -75,26 +71,37 @@
                 <p class="mt-1 text-xs text-gray-500">Chọn các ngày học trong tuần</p>
             </div>
             <div class="md:col-span-2">
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    @foreach([
-                        2 => 'Thứ 2',
-                        3 => 'Thứ 3',
-                        4 => 'Thứ 4',
-                        5 => 'Thứ 5',
-                        6 => 'Thứ 6',
-                        7 => 'Thứ 7'
-                    ] as $day => $label)
+                <div class="flex flex-wrap gap-2">
                     <div class="flex items-center">
-                        <input type="checkbox" id="day_{{ $day }}" name="day_of_week[]" 
-                               value="{{ $day }}" {{ in_array($day, old('day_of_week', [2,4])) ? 'checked' : '' }}
-                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                        <label for="day_{{ $day }}" class="ml-2 block text-sm text-gray-700">
-                            {{ $label }}
-                        </label>
+                        <input type="checkbox" id="day_0" name="days_of_week[]" value="0" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="day_0" class="ml-2 text-sm text-gray-700">Chủ nhật</label>
                     </div>
-                    @endforeach
+                    <div class="flex items-center">
+                        <input type="checkbox" id="day_1" name="days_of_week[]" value="1" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="day_1" class="ml-2 text-sm text-gray-700">Thứ 2</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="day_2" name="days_of_week[]" value="2" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="day_2" class="ml-2 text-sm text-gray-700">Thứ 3</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="day_3" name="days_of_week[]" value="3" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="day_3" class="ml-2 text-sm text-gray-700">Thứ 4</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="day_4" name="days_of_week[]" value="4" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="day_4" class="ml-2 text-sm text-gray-700">Thứ 5</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="day_5" name="days_of_week[]" value="5" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="day_5" class="ml-2 text-sm text-gray-700">Thứ 6</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="day_6" name="days_of_week[]" value="6" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="day_6" class="ml-2 text-sm text-gray-700">Thứ 7</label>
+                    </div>
                 </div>
-                @error('day_of_week')
+                @error('days_of_week')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -106,49 +113,27 @@
                 <label class="block text-sm font-medium text-gray-700 pt-2">
                     Giờ học <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Khung giờ học mỗi buổi</p>
+                <p class="mt-1 text-xs text-gray-500">Khung giờ học của buổi</p>
             </div>
             <div class="md:col-span-2">
                 <div class="flex space-x-4">
                     <div class="flex-1">
                         <label for="start_time" class="block text-xs font-medium text-gray-500">Bắt đầu</label>
                         <input type="time" id="start_time" name="start_time" 
-                               value="{{ old('start_time', '07:30') }}" required
+                               value="07:30" required
                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        @error('start_time')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
                     <div class="flex-1">
                         <label for="end_time" class="block text-xs font-medium text-gray-500">Kết thúc</label>
                         <input type="time" id="end_time" name="end_time" 
-                               value="{{ old('end_time', '09:30') }}" required
+                               value="09:30" required
                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        @error('end_time')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
                 </div>
-            </div>
-        </div>
-
-        {{-- Loại buổi học --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="md:col-span-1">
-                <label for="session_type" class="block text-sm font-medium text-gray-700 pt-2">
-                    Loại buổi học <span class="text-red-500">*</span>
-                </label>
-                <p class="mt-1 text-xs text-gray-500">Chọn loại buổi học</p>
-            </div>
-            <div class="md:col-span-2">
-                <select id="session_type" name="session_type" required
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="theory" {{ old('session_type', 'theory') == 'theory' ? 'selected' : '' }}>Lý thuyết</option>
-                    <option value="practice" {{ old('session_type') == 'practice' ? 'selected' : '' }}>Thực hành</option>
-                    <option value="exam" {{ old('session_type') == 'exam' ? 'selected' : '' }}>Kiểm tra</option>
-                    <option value="review" {{ old('session_type') == 'review' ? 'selected' : '' }}>Ôn tập</option>
-                </select>
-                @error('session_type')
+                @error('start_time')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                @error('end_time')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -158,17 +143,30 @@
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Tự động tính toán ngày kết thúc dựa trên số buổi và ngày học
-            const calculateEndDate = () => {
-                // Logic tính toán ngày kết thúc có thể thêm ở đây
-            };
-
-            // Gắn sự kiện cho các trường liên quan
-            document.getElementById('start_date').addEventListener('change', calculateEndDate);
-            document.getElementById('total_sessions').addEventListener('change', calculateEndDate);
-            document.querySelectorAll('input[name="day_of_week[]"]').forEach(checkbox => {
-                checkbox.addEventListener('change', calculateEndDate);
+            // Hiển thị số buổi cần tạo khi chọn lớp
+            document.getElementById('class_id').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const totalSessions = selectedOption.getAttribute('data-total-sessions');
+                
+                const classInfoDiv = document.getElementById('class-info');
+                const totalSessionsSpan = document.getElementById('total-sessions');
+                
+                if (this.value && totalSessions) {
+                    classInfoDiv.classList.remove('hidden');
+                    totalSessionsSpan.textContent = totalSessions;
+                } else {
+                    classInfoDiv.classList.add('hidden');
+                }
             });
+
+            // Đặt ngày mặc định
+            const today = new Date();
+            document.getElementById('start_date').valueAsDate = today;
+            
+            // Thêm 2 tháng vào ngày kết thúc mặc định
+            const endDate = new Date();
+            endDate.setMonth(today.getMonth() + 2);
+            document.getElementById('end_date').valueAsDate = endDate;
         });
     </script>
     @endpush

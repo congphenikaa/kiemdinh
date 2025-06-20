@@ -40,10 +40,10 @@ class Clazz extends Model
 
     public function schedules()
     {
-        return $this->hasMany(Schedule::class);
+        return $this->hasMany(Schedule::class, 'class_id');
     }
 
-    public function teachingAssignments()
+   public function teachingAssignments()
     {
         return $this->hasMany(TeachingAssignment::class);
     }

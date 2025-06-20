@@ -5,198 +5,178 @@
 
 @section('form_fields')
     <div class="space-y-6">
-        <!-- Thông tin lớp học -->
-        <div class="p-4 bg-gray-50 rounded-lg mb-6">
-            <h3 class="font-medium text-gray-700">Thông tin lớp học</h3>
-            <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <p class="text-sm text-gray-500">Mã lớp:</p>
-                    <p class="font-medium">{{ $class->class_code ?? 'N/A' }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Khóa học:</p>
-                    <p class="font-medium">
-                        {{ $class->course->name ?? 'Chưa có' }} ({{ $class->course->code ?? 'N/A' }})
-                    </p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Học kỳ:</p>
-                    <p class="font-medium">
-                        {{ $class->semester->name ?? 'Chưa có' }} ({{ $class->semester->year ?? 'N/A' }})
-                    </p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Tổng số buổi:</p>
-                    <p class="font-medium">{{ $class->schedules->count() }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Buổi đã phân công:</p>
-                    <p class="font-medium">{{ $totalAssignedSessions }}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Buổi còn lại:</p>
-                    <p class="font-medium {{ $remainingSessions <= 0 ? 'text-red-600' : 'text-green-600' }}">
-                        {{ $remainingSessions }}
-                    </p>
+        {{-- Lớp học --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-1">
+                <label for="class_id" class="block text-sm font-medium text-gray-700 pt-2">
+                    Lớp học <span class="text-red-500">*</span>
+                </label>
+                <p class="mt-1 text-xs text-gray-500">Chọn lớp học cần phân công</p>
+            </div>
+            <div class="md:col-span-2">
+                <select id="class_id" name="class_id" required
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="">-- Chọn lớp học --</option>
+                    @foreach($classes as $class)
+                        <option value="{{ $class->id }}" 
+                            data-faculty-id="{{ $class->course->faculty_id }}">
+                            {{ $class->class_code }} - {{ $class->course->name }} ({{ $class->semester->academicYear->name }})
+                        </option>
+                    @endforeach
+                </select>
+                <div id="class-info" class="mt-2 p-2 bg-blue-50 text-blue-800 rounded text-sm hidden">
+                    Khoa phụ trách: <span id="faculty-name"></span>
                 </div>
             </div>
         </div>
 
-        <!-- Form fields -->
-        <input type="hidden" name="class_id" value="{{ $class->id }}">
-
-        @if($remainingSessions > 0)
-        <!-- Giảng viên -->
+        {{-- Giáo viên --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-1">
                 <label for="teacher_id" class="block text-sm font-medium text-gray-700 pt-2">
-                    Giảng viên <span class="text-red-500">*</span>
+                    Giáo viên <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Chọn giảng viên từ danh sách</p>
+                <p class="mt-1 text-xs text-gray-500">Chọn giáo viên phân công</p>
             </div>
             <div class="md:col-span-2">
                 <select id="teacher_id" name="teacher_id" required
                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="">-- Chọn giảng viên --</option>
+                    <option value="">-- Chọn giáo viên --</option>
                     @foreach($teachers as $teacher)
-                        @php
-                            $isAssigned = $class->teachingAssignments->contains('teacher_id', $teacher->id);
-                        @endphp
-                        <option value="{{ $teacher->id }}" {{ $isAssigned ? 'disabled' : '' }}>
-                            {{ $teacher->name }} ({{ $teacher->code ?? 'N/A' }})
-                            {{ $isAssigned ? '(Đã phân công)' : '' }}
+                        <option value="{{ $teacher->id }}" 
+                            data-faculty-id="{{ $teacher->faculty_id }}"
+                            data-degree="{{ $teacher->degree->short_name }}">
+                            {{ $teacher->name }} ({{ $teacher->code }}) - {{ $teacher->faculty->short_name }}
                         </option>
                     @endforeach
                 </select>
-                @error('teacher_id')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+                <div id="teacher-info" class="mt-2 p-2 bg-blue-50 text-blue-800 rounded text-sm hidden">
+                    Khoa: <span id="teacher-faculty"></span> | 
+                    Học vị: <span id="teacher-degree"></span>
+                </div>
+                <div id="faculty-warning" class="mt-2 p-2 bg-yellow-50 text-yellow-800 rounded text-sm hidden">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    Giáo viên không thuộc khoa phụ trách môn học
+                </div>
             </div>
         </div>
 
-        <!-- Số buổi phụ trách -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div class="md:col-span-1">
-                <label for="assigned_sessions" class="block text-sm font-medium text-gray-700 pt-2">
-                    Số buổi phụ trách <span class="text-red-500">*</span>
-                </label>
-                <p class="mt-1 text-xs text-gray-500">
-                    Tối đa: {{ $remainingSessions }} buổi
-                </p>
-            </div>
-            <div class="md:col-span-2">
-                <input type="number" id="assigned_sessions" name="assigned_sessions" 
-                    value="{{ old('assigned_sessions', min(1, $remainingSessions)) }}" 
-                    min="1" 
-                    max="{{ $remainingSessions }}"
-                    required
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                @error('assigned_sessions')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-        </div>
-
-        <!-- Giảng viên chính -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div class="md:col-span-1">
-                <label class="block text-sm font-medium text-gray-700 pt-2">
-                    Vai trò
-                </label>
-                <p class="mt-1 text-xs text-gray-500">Chỉ có 1 giảng viên chính/lớp</p>
-            </div>
-            <div class="md:col-span-2">
-                <div class="relative flex items-start">
-                    <div class="flex items-center h-5">
-                        <input id="main_teacher" name="main_teacher" type="checkbox" value="1"
-                            {{ $class->mainTeacher ? 'disabled' : '' }}
-                            class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
-                    </div>
-                    <div class="ml-3 text-sm">
-                        <label for="main_teacher" class="font-medium text-gray-700">
-                            Giảng viên chính
-                        </label>
-                        <p class="text-xs text-gray-500">
-                            @if($class->mainTeacher)
-                                Lớp đã có giảng viên chính: {{ $class->mainTeacher->name }}
-                            @else
-                                Nếu chọn, giảng viên hiện tại sẽ trở thành giảng viên chính
-                            @endif
-                        </p>
+        {{-- Xác nhận khác khoa --}}
+        <div id="force-confirm" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-1"></div>
+                <div class="md:col-span-2 p-4 bg-red-50 border border-red-200 rounded-md">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 text-red-400">
+                            <i class="fas fa-exclamation-circle text-xl"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Xác nhận phân công</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <p>Giáo viên không thuộc khoa phụ trách môn học. Bạn có chắc chắn muốn phân công?</p>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center">
+                                    <input id="force_assign" name="force_assign" type="checkbox" 
+                                        class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                                    <label for="force_assign" class="ml-2 block text-sm text-red-900">
+                                        Tôi xác nhận phân công này
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                @error('main_teacher')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
             </div>
         </div>
-        @else
-        <div class="p-4 bg-blue-50 rounded-lg">
-            <p class="text-blue-700 text-sm">Lớp học đã được phân công đủ số buổi. Vui lòng chỉnh sửa phân công hiện có nếu cần thay đổi.</p>
-        </div>
-        @endif
-
-        <!-- Danh sách phân công hiện tại -->
-        @if($class->teachingAssignments->count() > 0)
-        <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-700 mb-2">Danh sách phân công hiện tại</h3>
-            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-                <table class="min-w-full divide-y divide-gray-300">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="py-2 pl-4 pr-3 text-left text-xs font-medium text-gray-500">Giảng viên</th>
-                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500">Số buổi</th>
-                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500">Vai trò</th>
-                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500">Tỉ lệ</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white">
-                        @foreach($class->teachingAssignments as $assignment)
-                        <tr>
-                            <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm font-medium text-gray-900">
-                                {{ $assignment->teacher->name }} ({{ $assignment->teacher->code ?? 'N/A' }})
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
-                                {{ $assignment->assigned_sessions }}
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
-                                @if($assignment->main_teacher)
-                                    <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs">Chính</span>
-                                @else
-                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full text-xs">Phụ</span>
-                                @endif
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
-                                {{ round(($assignment->assigned_sessions / $class->schedules->count()) * 100) }}%
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        @endif
     </div>
-@endsection
 
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const maxSessions = {{ $remainingSessions }};
-    const sessionInput = document.getElementById('assigned_sessions');
-    
-    if (maxSessions > 0) {
-        sessionInput.max = maxSessions;
-        sessionInput.addEventListener('input', function() {
-            if (parseInt(this.value) > maxSessions) {
-                this.value = maxSessions;
-            }
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const classSelect = document.getElementById('class_id');
+            const teacherSelect = document.getElementById('teacher_id');
+            const facultyWarning = document.getElementById('faculty-warning');
+            const forceConfirm = document.getElementById('force-confirm');
+            
+            // Hiển thị thông tin khi chọn lớp
+            classSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const facultyId = selectedOption.getAttribute('data-faculty-id');
+                const classInfo = document.getElementById('class-info');
+                
+                if (this.value) {
+                    // Gọi API lấy thông tin khoa và giáo viên
+                    fetch(`/api/classes/${this.value}/teachers`)
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('faculty-name').textContent = data.faculty_name;
+                            classInfo.classList.remove('hidden');
+                            
+                            // Lọc giáo viên cùng khoa
+                            const teacherOptions = teacherSelect.options;
+                            let hasSameFacultyTeacher = false;
+                            
+                            for (let i = 0; i < teacherOptions.length; i++) {
+                                if (teacherOptions[i].value && 
+                                    teacherOptions[i].getAttribute('data-faculty-id') === facultyId) {
+                                    teacherOptions[i].style.display = '';
+                                    hasSameFacultyTeacher = true;
+                                } else {
+                                    teacherOptions[i].style.display = 'none';
+                                }
+                            }
+                            
+                            if (!hasSameFacultyTeacher) {
+                                // Hiển thị tất cả giáo viên nếu không có giáo viên cùng khoa
+                                for (let i = 0; i < teacherOptions.length; i++) {
+                                    teacherOptions[i].style.display = '';
+                                }
+                            }
+                        });
+                } else {
+                    classInfo.classList.add('hidden');
+                    // Hiển thị tất cả giáo viên khi không chọn lớp
+                    const teacherOptions = teacherSelect.options;
+                    for (let i = 0; i < teacherOptions.length; i++) {
+                        teacherOptions[i].style.display = '';
+                    }
+                }
+                
+                // Reset cảnh báo
+                facultyWarning.classList.add('hidden');
+                forceConfirm.classList.add('hidden');
+            });
+            
+            // Hiển thị thông tin khi chọn giáo viên
+            teacherSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const teacherInfo = document.getElementById('teacher-info');
+                
+                if (this.value) {
+                    document.getElementById('teacher-faculty').textContent = 
+                        selectedOption.text.split(' - ')[1] || '';
+                    document.getElementById('teacher-degree').textContent = 
+                        selectedOption.getAttribute('data-degree') || '';
+                    teacherInfo.classList.remove('hidden');
+                    
+                    // Kiểm tra có cùng khoa với lớp không
+                    const classSelected = classSelect.options[classSelect.selectedIndex];
+                    if (classSelected.value && 
+                        classSelected.getAttribute('data-faculty-id') !== selectedOption.getAttribute('data-faculty-id')) {
+                        facultyWarning.classList.remove('hidden');
+                        forceConfirm.classList.remove('hidden');
+                    } else {
+                        facultyWarning.classList.add('hidden');
+                        forceConfirm.classList.add('hidden');
+                    }
+                } else {
+                    teacherInfo.classList.add('hidden');
+                    facultyWarning.classList.add('hidden');
+                    forceConfirm.classList.add('hidden');
+                }
+            });
         });
-    } else {
-        sessionInput.disabled = true;
-        sessionInput.value = '0';
-        sessionInput.classList.add('bg-gray-100', 'cursor-not-allowed');
-    }
-});
-</script>
+    </script>
+    @endpush
 @endsection

@@ -1,97 +1,136 @@
-@extends('templates.index', [
-    'entityName' => 'Phân công giảng dạy',
-    'routePrefix' => 'teaching-assignments'
-])
+@extends('layouts.app')
 
-@section('table_headers')
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STT</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã lớp</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khóa học</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Học kỳ</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giảng viên chính</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số giảng viên</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buổi đã phân công/Tổng buổi</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái phân công</th>
-    <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
-@endsection
+@section('title', 'Quản lý phân công giảng dạy')
+@section('breadcrumb', 'Danh sách phân công')
 
-@section('table_rows')
-    @forelse($classes as $index => $clazz)
-    @php
-        $totalAssigned = $clazz->teachingAssignments->sum('assigned_sessions');
-        $totalSessions = $clazz->schedules->count();
-        $hasAssignments = $clazz->teachingAssignments->count() > 0;
-        $isFullyAssigned = $totalAssigned >= $totalSessions;
-        $hasMainTeacher = $clazz->mainTeacher !== null;
-    @endphp
-    <tr class="{{ $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' }} hover:bg-gray-100 transition-colors">
-        <td class="px-4 py-4 text-sm text-gray-500">
-            {{ ($classes->currentPage() - 1) * $classes->perPage() + $index + 1 }}
-        </td>
-        <td class="px-4 py-4 font-medium text-sm text-gray-900">{{ $clazz->class_code }}</td>
-        <td class="px-4 py-4 text-sm text-gray-700">
-            {{ $clazz->course->name ?? 'Chưa có' }}
-        </td>
-        <td class="px-4 py-4 text-sm text-gray-700">
-            {{ $clazz->semester->name ?? 'Chưa có' }}
-        </td>
-        <td class="px-4 py-4 text-sm text-gray-700">
-            {{ $clazz->mainTeacher?->name ?? 'Chưa phân công' }}
-        </td>
-        <td class="px-4 py-4 text-sm text-gray-700">
-            {{ $clazz->teachingAssignments->count() }}
-        </td>
-        <td class="px-4 py-4 text-sm text-gray-700">
-            {{ $totalAssigned }}/{{ $totalSessions }}
-        </td>
-        <td class="px-4 py-4 text-sm">
-            @if($hasMainTeacher && $isFullyAssigned)
-                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-check-circle mr-1"></i> Hoàn thành
-                </span>
-            @elseif($hasMainTeacher)
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-info-circle mr-1"></i> Đã phân công
-                </span>
-            @elseif($hasAssignments)
-                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-exclamation-circle mr-1"></i> Thiếu GV chính
-                </span>
-            @else
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-times-circle mr-1"></i> Chưa phân công
-                </span>
-            @endif
-        </td>
-        <td class="px-4 py-4 text-right text-sm font-medium space-x-2">
-            <a href="{{ route('teaching-assignments.create', $clazz) }}" 
-               class="inline-flex items-center px-3 py-1 border border-blue-300 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
-               title="Thêm phân công">
-                <i class="fas fa-plus mr-1"></i> Thêm
+@section('content')
+<div class="content-section">
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">Danh sách phân công giảng dạy</h2>
+            <a href="{{ route('teaching-assignments.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                <i class="fas fa-plus mr-2"></i>Thêm phân công
             </a>
-            @if($hasAssignments)
-                <a href="{{ route('teaching-assignments.edit', $clazz) }}" 
-                   class="inline-flex items-center px-3 py-1 border border-yellow-300 rounded-md text-yellow-700 bg-yellow-50 hover:bg-yellow-100 transition-colors"
-                   title="Chỉnh sửa phân công">
-                    <i class="fas fa-edit mr-1"></i> Sửa
-                </a>
-                <button class="btn-delete inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
-                        title="Xóa"
-                        data-id="{{ $clazz->id }}"
-                    <i class="fas fa-trash-alt mr-1"></i> Xóa
-                </button>
-            @endif
-        </td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="9" class="px-6 py-12 text-center">
-            <div class="flex flex-col items-center justify-center">
-                <i class="fas fa-chalkboard-teacher text-4xl text-gray-300 mb-4"></i>
-                <h4 class="text-lg font-medium text-gray-500">Không có lớp học nào đang mở</h4>
-                <p class="text-gray-400 mt-1">Hiện tại không có lớp học nào ở trạng thái "Đang mở"</p>
+        </div>
+
+        <!-- Filter Form -->
+        <form method="GET" class="mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Lớp học</label>
+                    <select name="class_id" class="w-full border-gray-300 rounded-md shadow-sm">
+                        <option value="">Tất cả lớp</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                {{ $class->class_code }} - {{ $class->course->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Giáo viên</label>
+                    <select name="teacher_id" class="w-full border-gray-300 rounded-md shadow-sm">
+                        <option value="">Tất cả giáo viên</option>
+                        @foreach($teachers as $teacher)
+                            <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                {{ $teacher->name }} ({{ $teacher->code }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full">
+                        <i class="fas fa-filter mr-2"></i>Lọc
+                    </button>
+                </div>
             </div>
-        </td>
-    </tr>
-    @endforelse
+        </form>
+
+        <!-- Assignments Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STT</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lớp học</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giáo viên</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khoa</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Học kỳ</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @foreach($assignments as $index => $assignment)
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $index + $assignments->firstItem() }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900">{{ $assignment->class->class_code }}</div>
+                            <div class="text-sm text-gray-500">{{ $assignment->class->course->name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="font-medium text-gray-900">{{ $assignment->teacher->name }}</div>
+                            <div class="text-sm text-gray-500">{{ $assignment->teacher->code }}</div>
+                            <div class="text-sm text-gray-500">{{ $assignment->teacher->degree->short_name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {{ $assignment->teacher->faculty->short_name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {{ $assignment->class->semester->name }} ({{ $assignment->class->semester->academicYear->name }})
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button onclick="confirmDelete({{ $assignment->id }})" class="text-red-600 hover:text-red-900">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4">
+            {{ $assignments->appends(request()->query())->links() }}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Form -->
+<form id="delete-form" method="POST" class="hidden">
+    @csrf
+    @method('DELETE')
+</form>
+
+<!-- Confirmation Modal -->
+<div id="confirm-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 class="text-lg font-medium text-gray-900 mb-4" id="modal-title">Xác nhận</h3>
+        <p class="text-sm text-gray-500 mb-6" id="modal-message">Bạn có chắc chắn muốn xóa phân công này?</p>
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="hideModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Hủy
+            </button>
+            <button type="button" onclick="submitDelete()" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                Xóa
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(id) {
+        document.getElementById('delete-form').action = `/teaching-assignments/${id}`;
+        document.getElementById('modal-message').textContent = 'Bạn có chắc chắn muốn xóa phân công này?';
+        document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    function hideModal() {
+        document.getElementById('confirm-modal').classList.add('hidden');
+    }
+
+    function submitDelete() {
+        document.getElementById('delete-form').submit();
+    }
+</script>
 @endsection

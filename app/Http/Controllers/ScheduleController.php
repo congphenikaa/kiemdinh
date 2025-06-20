@@ -2,84 +2,130 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Schedule;
 use App\Models\Clazz;
+use App\Models\Course;
+use App\Models\Schedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class ScheduleController extends Controller
 {
-    public function index()
+    /**
+     * Hiển thị danh sách lịch học
+     */
+    public function index(Request $request)
     {
-        $schedules = Schedule::with('class')->orderBy('date', 'desc')->paginate(10);
-        return view('class-management.schedules.index', compact('schedules'));
+        $query = Schedule::with(['class.course', 'class.semester.academicYear'])
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time');
+
+        // Lọc theo lớp học
+        if ($request->has('class_id') && $request->class_id) {
+            $query->where('class_id', $request->class_id);
+        }
+
+        // Lọc theo ngày
+        if ($request->has('date') && $request->date) {
+            $query->whereDate('date', $request->date);
+        }
+
+        // Lọc theo trạng thái
+        if ($request->has('is_taught') && in_array($request->is_taught, ['0', '1'])) {
+            $query->where('is_taught', $request->is_taught);
+        }
+
+        $schedules = $query->paginate(20);
+        $classes = Clazz::with('course')->orderBy('class_code')->get();
+
+        return view('class-management.schedules.index', compact('schedules', 'classes'));
     }
 
+    /**
+     * Hiển thị form tạo lịch học mới
+     */
     public function create()
     {
-        $classes = Clazz::with('course')->get();
+        $classes = Clazz::with(['course', 'semester.academicYear'])
+            ->where('status', 'open') // Chỉ hiển thị lớp có trạng thái mở
+            ->orderBy('class_code')
+            ->get();
+
         return view('class-management.schedules.create', compact('classes'));
     }
 
+    /**
+     * Lưu lịch học mới (tạo nhiều buổi cùng lúc)
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'class_id' => 'required|exists:classes,id',
-            'start_date' => 'required|date|after_or_equal:today',
-            'total_sessions' => 'required|integer|min:1|max:100',
-            'day_of_week' => 'required|array|min:1',
-            'day_of_week.*' => 'integer|between:2,7',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'days_of_week' => 'required|array|min:1',
+            'days_of_week.*' => 'integer|between:0,6',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'session_type' => 'required|in:theory,practice,exam,review',
         ]);
 
         try {
             DB::beginTransaction();
 
-            $class = Clazz::findOrFail($validated['class_id']);
-            $startDate = Carbon::parse($validated['start_date']);
-            $sessionsCreated = 0;
-            $currentDate = $startDate->copy();
-            $scheduleData = [];
-
-            while ($sessionsCreated < $validated['total_sessions']) {
-                // Kiểm tra nếu ngày hiện tại là ngày học được chọn
-                if (in_array($currentDate->dayOfWeekIso, $validated['day_of_week'])) {
-                    $scheduleData[] = [
-                        'class_id' => $validated['class_id'],
-                        'day_of_week' => $currentDate->dayOfWeekIso,
-                        'date' => $currentDate->format('Y-m-d'),
-                        'start_time' => $validated['start_time'],
-                        'end_time' => $validated['end_time'],
-                        'session_type' => $validated['session_type'],
-                        'session_number' => $sessionsCreated + 1,
-                        'is_cancelled' => false,
-                        'is_taught' => false,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-
-                    $sessionsCreated++;
-                }
-
-                // Chuyển sang ngày tiếp theo
-                $currentDate->addDay();
-
-                // Bảo vệ trường hợp vòng lặp vô hạn
-                if ($currentDate->diffInDays($startDate) > 365) {
-                    throw new \Exception('Không thể tạo đủ số buổi học trong vòng 1 năm');
-                }
+            $class = Clazz::with('course')->findOrFail($validated['class_id']);
+            $totalSessions = $class->course->total_sessions;
+            
+            // Kiểm tra số buổi hiện có của lớp
+            $existingSessions = Schedule::where('class_id', $validated['class_id'])->count();
+            $remainingSessions = $totalSessions - $existingSessions;
+            
+            if ($remainingSessions <= 0) {
+                return back()->withInput()
+                    ->with('error', 'Lớp học này đã có đủ số buổi theo quy định của môn học.');
             }
 
-            // Chèn hàng loạt vào database
-            Schedule::insert($scheduleData);
+            $startDate = Carbon::parse($validated['start_date']);
+            $endDate = Carbon::parse($validated['end_date']);
+            $currentDate = $startDate->copy();
+            $sessionNumber = $existingSessions + 1; // Bắt đầu từ buổi tiếp theo
+            $createdSessions = 0;
+
+            // Tạo lịch học cho đến khi đủ số buổi hoặc hết khoảng thời gian
+            while ($sessionNumber <= $totalSessions && $currentDate <= $endDate) {
+                if (in_array($currentDate->dayOfWeek, $validated['days_of_week'])) {
+                    $conflict = Schedule::where('class_id', $validated['class_id'])
+                        ->where('date', $currentDate->format('Y-m-d'))
+                        ->exists();
+
+                    if (!$conflict) {
+                        Schedule::create([
+                            'class_id' => $validated['class_id'],
+                            'day_of_week' => $currentDate->dayOfWeek,
+                            'start_time' => $validated['start_time'],
+                            'end_time' => $validated['end_time'],
+                            'date' => $currentDate->format('Y-m-d'),
+                            'session_number' => $sessionNumber,
+                            'is_taught' => false
+                        ]);
+
+                        $sessionNumber++;
+                        $createdSessions++;
+                    }
+                }
+
+                $currentDate->addDay();
+            }
 
             DB::commit();
 
+            if ($createdSessions < $remainingSessions) {
+                return redirect()->route('schedules.index')
+                    ->with('warning', "Đã tạo $createdSessions/$remainingSessions buổi học còn lại. Không đủ ngày học trong khoảng thời gian hoặc có lịch trùng.");
+            }
+
             return redirect()->route('schedules.index')
-                ->with('success', 'Đã tạo thành công ' . $sessionsCreated . ' buổi học cho lớp ' . $class->class_code);
+                ->with('success', "Đã tạo thành công $createdSessions buổi học.");
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()
@@ -87,62 +133,61 @@ class ScheduleController extends Controller
         }
     }
 
-   public function edit(Schedule $schedule)
+    /**
+     * Hiển thị form chỉnh sửa lịch học
+     */
+    public function edit(Schedule $schedule)
     {
-        $classes = Clazz::with('course')->get();
-        $daysOfWeek = [
-            2 => 'Thứ 2',
-            3 => 'Thứ 3',
-            4 => 'Thứ 4',
-            5 => 'Thứ 5',
-            6 => 'Thứ 6',
-            7 => 'Thứ 7'
-        ];
-        
-        return view('class-management.schedules.edit', compact('schedule', 'classes', 'daysOfWeek'));
+        $classes = Clazz::with(['course', 'semester.academicYear'])
+            ->where('status', 'open')
+            ->orderBy('class_code')
+            ->get();
+
+        return view('class-management.schedules.edit', compact('schedule', 'classes'));
     }
 
+    /**
+     * Cập nhật lịch học
+     */
     public function update(Request $request, Schedule $schedule)
     {
         $validated = $request->validate([
             'class_id' => 'required|exists:classes,id',
-            'day_of_week' => 'required|integer|between:2,7',
+            'day_of_week' => 'required|integer|between:0,6',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'date' => 'required|date',
-            'session_type' => 'required|in:theory,practice,exam,review',
-            'is_cancelled' => 'sometimes|boolean',
-            'cancellation_reason' => 'nullable|required_if:is_cancelled,true|string|max:255',
-            'is_taught' => 'sometimes|boolean'
+            'session_number' => [
+                'required',
+                'integer',
+                'min:1',
+                Rule::unique('schedules')->ignore($schedule->id)->where(function ($query) use ($request) {
+                    return $query->where('class_id', $request->class_id)
+                                ->where('date', $request->date);
+                })
+            ],
+            'is_taught' => 'boolean'
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Nếu buổi học bị hủy nhưng không có lý do
-            if ($validated['is_cancelled'] && empty($validated['cancellation_reason'])) {
-                throw new \Exception('Vui lòng nhập lý do hủy buổi học');
-            }
-
-            // Nếu buổi học đã được dạy thì không thể hủy
-            if ($schedule->is_taught && $validated['is_cancelled']) {
-                throw new \Exception('Không thể hủy buổi học đã được dạy');
-            }
-
-            // Cập nhật thông tin
             $schedule->update($validated);
 
             DB::commit();
 
             return redirect()->route('schedules.index')
-                ->with('success', 'Cập nhật thông tin buổi học thành công');
+                ->with('success', 'Cập nhật lịch học thành công!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()
-                ->with('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
+                ->with('error', 'Lỗi khi cập nhật lịch học: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Xóa lịch học
+     */
     public function destroy(Schedule $schedule)
     {
         try {
@@ -153,10 +198,37 @@ class ScheduleController extends Controller
             DB::commit();
 
             return redirect()->route('schedules.index')
-                ->with('success', 'Schedule deleted successfully.');
+                ->with('success', 'Xóa lịch học thành công!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error deleting schedule: ' . $e->getMessage());
+            return back()->with('error', 'Lỗi khi xóa lịch học: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * API lấy thông tin lớp học để hiển thị số buổi cần tạo
+     */
+    public function getClassInfo($classId)
+    {
+        $class = Clazz::with('course')->findOrFail($classId);
+        
+        return response()->json([
+            'total_sessions' => $class->course->total_sessions,
+            'class_code' => $class->class_code,
+            'course_name' => $class->course->name
+        ]);
+    }
+
+    /**
+     * Đánh dấu lịch học đã dạy/chưa dạy
+     */
+    public function toggleTaughtStatus(Schedule $schedule)
+    {
+        $schedule->update(['is_taught' => !$schedule->is_taught]);
+        
+        return response()->json([
+            'success' => true,
+            'is_taught' => $schedule->is_taught
+        ]);
     }
 }

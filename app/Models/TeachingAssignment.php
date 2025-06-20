@@ -23,4 +23,12 @@ class TeachingAssignment extends Model
     {
         return $this->belongsTo(Clazz::class);
     }
+
+    // Kiểm tra xem giáo viên đã được phân công cho lớp này chưa
+    public static function isAssigned($classId, $teacherId)
+    {
+        return self::where('class_id', $classId)
+            ->where('teacher_id', $teacherId)
+            ->exists();
+    }
 }

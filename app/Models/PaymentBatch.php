@@ -22,6 +22,18 @@ class PaymentBatch extends Model
         'processed_date' => 'date'
     ];
 
+     public function getStatusColorAttribute()
+    {
+        $colors = [
+            'pending' => 'warning',
+            'processing' => 'info',
+            'completed' => 'success',
+            'cancelled' => 'danger'
+        ];
+        
+        return $colors[$this->status] ?? 'secondary';
+    }
+
     public function semester()
     {
         return $this->belongsTo(Semester::class);

@@ -28,6 +28,6 @@ class Schedule extends Model
 
     public function class()
     {
-        return $this->belongsTo(Clazz::class);
+        return $this->belongsTo(Clazz::class, 'class_id');
     }
 }

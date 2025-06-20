@@ -161,7 +161,7 @@
                 </li>
 
                 <!-- 3. Tính tiền dạy -->
-                <li class="menu-parent {{ request()->routeIs('teacher-payments*', 'payment-configs*', 'payment-batches*', 'class-size-coefficients*') ? 'active open' : '' }}">
+                <li class="menu-parent {{ request()->routeIs('payment-calculations*', 'payment-configs*', 'payment-batches*', 'class-size-coefficients*') ? 'active open' : '' }}">
                     <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
                         <div class="flex items-center">
                             <i class="fas fa-money-bill-wave w-5 mr-3 text-center"></i>
@@ -186,14 +186,14 @@
                             </a>
                         </li>
                         
-                        <!-- Tính tiền dạy -->
-                        <li class="{{ request()->routeIs('teacher-payments.*') ? 'bg-blue-600' : '' }}">
-                            <a href="{{ route('teacher-payments.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                        <!-- Tính toán thanh toán -->
+                        <li class="{{ request()->routeIs('payment-calculations.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('payment-calculations.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-calculator w-5 mr-3 text-center"></i>
-                                <span>3.3. Tính tiền dạy theo kỳ</span>
+                                <span>3.3. Tính toán thanh toán</span>
                             </a>
                         </li>
-                        
+
                         <!-- Quản lý đợt thanh toán -->
                         <li class="{{ request()->routeIs('payment-batches.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('payment-batches.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
