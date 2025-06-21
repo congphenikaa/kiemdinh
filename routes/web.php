@@ -66,6 +66,8 @@ Route::prefix('payment-calculations')->group(function () {
 
 Route::resource('payment-batches', PaymentBatchController::class)->except(['create']);
 Route::get('/payment-batches/{semester}/create', [PaymentBatchController::class, 'create'])->name('payment-batches.create');
+Route::post('/payment-batches/{semester}', [PaymentBatchController::class, 'store'])
+     ->name('payment-batches.store');
 
 
     // 4. Báo cáo

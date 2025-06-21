@@ -21,14 +21,16 @@
             </a>
         </div>
         <div class="p-6">
-            <form action="{{ route('payment-batches.store', $semester->id) }}" method="POST">
+            <form id="create-batch-form" action="{{ route('payment-batches.store', $semester) }}" method="POST">
                 @csrf
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label for="batch_name" class="block text-sm font-medium text-gray-700 mb-1">Tên đợt thanh toán <span class="text-red-500">*</span></label>
-                        <input type="text" id="batch_name" name="batch_name" value="{{ old('batch_name', 'Đợt thanh toán tháng ' . now()->format('m/Y')) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('batch_name') border-red-500 @enderror" required>
+                        <input type="text" id="batch_name" name="batch_name" 
+                               value="{{ old('batch_name', 'Đợt thanh toán tháng ' . now()->format('m/Y')) }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('batch_name') border-red-500 @enderror" 
+                               required>
                         @error('batch_name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -36,8 +38,11 @@
                     
                     <div>
                         <label for="payment_date" class="block text-sm font-medium text-gray-700 mb-1">Ngày thanh toán <span class="text-red-500">*</span></label>
-                        <input type="date" id="payment_date" name="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('payment_date') border-red-500 @enderror" required>
+                        <input type="date" id="payment_date" name="payment_date" 
+                               value="{{ old('payment_date', now()->format('Y-m-d')) }}"
+                               min="{{ now()->format('Y-m-d') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('payment_date') border-red-500 @enderror" 
+                               required>
                         @error('payment_date')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -82,7 +87,7 @@
                         </svg>
                         Hủy bỏ
                     </button>
-                    <button type="submit" 
+                    <button type="submit" id="submit-btn"
                             class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -94,4 +99,24 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('create-batch-form');
+    const submitBtn = document.getElementById('submit-btn');
+    
+    form.addEventListener('submit', function(e) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Đang xử lý...
+        `;
+    });
+});
+</script>
+@endpush
 @endsection
