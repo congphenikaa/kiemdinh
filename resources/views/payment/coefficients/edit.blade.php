@@ -1,6 +1,7 @@
-@extends('templates.create', [
+@extends('templates.edit', [
     'entityName' => 'Hệ số lớp học',
-    'routePrefix' => 'class-size-coefficients'
+    'routePrefix' => 'class-size-coefficients',
+    'model' => $classSizeCoefficient
 ])
 
 @section('form_fields')
@@ -16,9 +17,8 @@
             <div class="md:col-span-2">
                 <select id="academic_year_id" name="academic_year_id" required
                     class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="">-- Chọn năm học --</option>
                     @foreach($academicYears as $year)
-                        <option value="{{ $year->id }}" {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>
+                        <option value="{{ $year->id }}" {{ old('academic_year_id', $classSizeCoefficient->academic_year_id) == $year->id ? 'selected' : '' }}>
                             {{ $year->name }} ({{ $year->start_date->format('d/m/Y') }} - {{ $year->end_date->format('d/m/Y') }})
                         </option>
                     @endforeach
@@ -40,7 +40,7 @@
             <div class="md:col-span-2 grid grid-cols-2 gap-4">
                 <div>
                     <input type="number" name="min_students" id="min_students" 
-                           value="{{ old('min_students') }}" min="1" required
+                           value="{{ old('min_students', $classSizeCoefficient->min_students) }}" min="1" required
                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                            placeholder="Từ">
                     @error('min_students')
@@ -49,7 +49,7 @@
                 </div>
                 <div>
                     <input type="number" name="max_students" id="max_students" 
-                           value="{{ old('max_students') }}" min="2" required
+                           value="{{ old('max_students', $classSizeCoefficient->max_students) }}" min="2" required
                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                            placeholder="Đến">
                     @error('max_students')
@@ -70,7 +70,7 @@
             <div class="md:col-span-2">
                 <div class="relative rounded-md shadow-sm">
                     <input type="number" step="0.01" min="0" name="coefficient" id="coefficient" 
-                           value="{{ old('coefficient') }}" required
+                           value="{{ old('coefficient', $classSizeCoefficient->coefficient) }}" required
                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                            placeholder="Nhập hệ số">
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -80,6 +80,20 @@
                 @error('coefficient')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        Hệ số lớp học sẽ được áp dụng tự động khi tính lương giảng viên dựa trên số lượng sinh viên đăng ký lớp.
+                    </p>
+                </div>
             </div>
         </div>
     </div>

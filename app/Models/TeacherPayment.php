@@ -16,8 +16,6 @@ class TeacherPayment extends Model
         'status',
         'semester_id',
         'total_sessions',
-        'theory_sessions',
-        'practice_sessions',
         'degree_coefficient',
         'size_coefficient',
         'base_rate',
@@ -27,7 +25,11 @@ class TeacherPayment extends Model
     ];
 
     protected $casts = [
-        'payment_date' => 'date'
+        'payment_date' => 'date',
+        'degree_coefficient' => 'decimal:3,2',
+        'size_coefficient' => 'decimal:3,2',
+        'base_rate' => 'decimal:10,2',
+        'total_amount' => 'decimal:12,2'
     ];
 
     public function teacher()

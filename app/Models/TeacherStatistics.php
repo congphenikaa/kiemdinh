@@ -18,6 +18,10 @@ class TeacherStatistics extends Model
         'average_attendance'
     ];
 
+    protected $casts = [
+        'average_attendance' => 'decimal:5,2'
+    ];
+
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);

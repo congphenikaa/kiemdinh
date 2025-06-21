@@ -2,29 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CourseClass;
+use App\Models\Clazz;
 use App\Models\Semester;
-use App\Models\ClassStatistic;
+use App\Models\ClassStatistics;
 use App\Models\TeacherPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ClassReportController extends Controller
 {
-    // 2.6.1 - Thống kê tổng quan
+    /**
+     * Hiển thị thống kê tổng quan các lớp học
+     */
     public function index(Request $request)
     {
-        // Lọc theo học kỳ
+        // Lọc theo học kỳ và trạng thái
         $semesterId = $request->input('semester');
         $status = $request->input('status', 'all');
 
-        // Query cơ bản
-        $query = CourseClass::with([
-                'course',
-                'semester',
-                'teacher',
-                'statistics'
-            ])
+        $query = Clazz::with(['course', 'semester.academicYear', 'teachers', 'statistics'])
             ->when($semesterId, function($q) use ($semesterId) {
                 return $q->where('semester_id', $semesterId);
             })
@@ -36,40 +32,37 @@ class ClassReportController extends Controller
         $stats = [
             'totalClasses' => $query->count(),
             'totalStudents' => $query->sum('current_students'),
-            'avgAttendance' => ClassStatistic::when($semesterId, function($q) use ($semesterId) {
-                    return $q->whereHas('classes', function($q) use ($semesterId) {
+            'avgAttendance' => ClassStatistics::when($semesterId, function($q) use ($semesterId) {
+                    return $q->whereHas('class', function($q) use ($semesterId) {
                         $q->where('semester_id', $semesterId);
                     });
                 })
                 ->avg('average_attendance'),
-            'cancelledSessions' => ClassStatistic::when($semesterId, function($q) use ($semesterId) {
-                    return $q->whereHas('classes', function($q) use ($semesterId) {
+            'completedSessions' => ClassStatistics::when($semesterId, function($q) use ($semesterId) {
+                    return $q->whereHas('class', function($q) use ($semesterId) {
                         $q->where('semester_id', $semesterId);
                     });
                 })
-                ->sum('total_sessions_cancelled')
+                ->sum('total_sessions_taught')
         ];
 
-        // Thống kê theo trạng thái
-        $byStatus = CourseClass::select('status', DB::raw('COUNT(*) as count'))
+        // Thống kê theo trạng thái lớp
+        $byStatus = Clazz::select('status', DB::raw('COUNT(*) as count'))
             ->when($semesterId, function($q) use ($semesterId) {
                 return $q->where('semester_id', $semesterId);
             })
             ->groupBy('status')
             ->get()
-            ->mapWithKeys(function($item) {
-                return [$item->status => $item->count];
-            });
+            ->pluck('count', 'status');
 
         // Thống kê theo khoa
-        $byFaculty = CourseClass::select(
+        $byFaculty = Clazz::select(
                 'faculties.name',
                 DB::raw('COUNT(classes.id) as class_count'),
                 DB::raw('SUM(classes.current_students) as student_count')
             )
             ->join('courses', 'classes.course_id', '=', 'courses.id')
-            ->join('departments', 'courses.department_id', '=', 'departments.id')
-            ->join('faculties', 'departments.faculty_id', '=', 'faculties.id')
+            ->join('faculties', 'courses.faculty_id', '=', 'faculties.id')
             ->when($semesterId, function($q) use ($semesterId) {
                 return $q->where('classes.semester_id', $semesterId);
             })
@@ -86,10 +79,11 @@ class ClassReportController extends Controller
             })
             ->first();
 
-        // Dữ liệu filter
-        $semesters = Semester::orderBy('start_date', 'desc')->get();
+        $semesters = Semester::with('academicYear')
+            ->orderBy('start_date', 'desc')
+            ->get();
 
-        return view('class-management.class-reports.index', array_merge($stats, [
+        return view('class-management.reports.index', array_merge($stats, [
             'byStatus' => $byStatus,
             'byFaculty' => $byFaculty,
             'paymentStats' => $paymentStats,
@@ -101,12 +95,14 @@ class ClassReportController extends Controller
         ]));
     }
 
-    // 2.6.2 - Chi tiết thống kê lớp
-    public function show(CourseClass $class)
+    /**
+     * Hiển thị chi tiết thống kê lớp học
+     */
+    public function show(Clazz $class)
     {
         $class->load([
-            'course.department.faculty',
-            'teacher.degree',
+            'course.faculty',
+            'teachers.degree',
             'schedules' => function($q) {
                 $q->orderBy('date')->orderBy('start_time');
             },
@@ -116,18 +112,16 @@ class ClassReportController extends Controller
             }
         ]);
 
-        // Tính % các loại buổi học
-        $sessionTypes = $class->schedules->groupBy('session_type')
-            ->map(function($sessions) {
-                return [
-                    'count' => $sessions->count(),
-                    'percentage' => round(($sessions->count() / $sessions->sum('count')) * 100, 1)
-                ];
-            });
+        // Tính toán các loại buổi học
+        $totalSessions = $class->course->total_sessions;
+        $taughtSessions = $class->schedules->where('is_taught', true)->count();
+        $cancelledSessions = $totalSessions - $taughtSessions;
 
-        return view('class-management.class-reports.show', [
+        return view('class-management.reports.show', [
             'class' => $class,
-            'sessionTypes' => $sessionTypes
+            'taughtSessions' => $taughtSessions,
+            'cancelledSessions' => $cancelledSessions,
+            'attendanceRate' => $class->statistics->average_attendance ?? 0
         ]);
     }
 }

@@ -16,7 +16,7 @@ use App\Http\Controllers\{
     PaymentConfigController,
     ClassSizeCoefficientController,
     TeachingAssignmentController,
-    TeacherPaymentController,
+    PaymentCalculationController,
     PaymentBatchController,
     ReportController
 };
@@ -43,27 +43,30 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('courses', CourseController::class);
     Route::resource('academic-years', AcademicYearController::class);
     Route::resource('semesters', SemesterController::class);
+    Route::patch('/{semester}/toggle-active', [SemesterController::class, 'toggleActive'])->name('semesters.toggleActive');
     Route::resource('classes', ClassController::class);
     Route::resource('teaching-assignments', TeachingAssignmentController::class);
+    Route::get('/api/classes/{class}/teachers', [TeachingAssignmentController::class, 'getTeachersByClass']);
+
     Route::resource('schedules', ScheduleController::class);
-    Route::get('class-reports', [ClassReportController::class, 'index'])->name('class-reports.index');
-
-
-    // 3. Tính tiền dạy
-    Route::resource('payment-configs', PaymentConfigController::class);
-    
-    Route::resource('class-size-coefficients', ClassSizeCoefficientController::class);
-    
-    
-    Route::prefix('teacher-payments')->group(function () {
-        Route::get('/', [TeacherPaymentController::class, 'index'])->name('teacher-payments.index');
-        Route::get('/calculate/{semester}', [TeacherPaymentController::class, 'calculate'])->name('teacher-payments.calculate');
-        Route::post('/store', [TeacherPaymentController::class, 'store'])->name('teacher-payments.store');
-        Route::get('/{payment}/edit', [TeacherPaymentController::class, 'edit'])->name('teacher-payments.edit');
-        Route::put('/{payment}', [TeacherPaymentController::class, 'update'])->name('teacher-payments.update');
+    Route::prefix('class-reports')->group(function () {
+            Route::get('/', [ClassReportController::class, 'index'])->name('class-reports.index');
+            Route::get('/{class}', [ClassReportController::class, 'show'])->name('class-reports.show');
     });
+
+
+   Route::resource('payment-configs', PaymentConfigController::class);
     
-    Route::resource('payment-batches', PaymentBatchController::class);
+Route::resource('class-size-coefficients', ClassSizeCoefficientController::class);
+
+Route::prefix('payment-calculations')->group(function () {
+    Route::get('/', [PaymentCalculationController::class, 'index'])->name('payment-calculations.index');
+    Route::get('/{semester}/calculate', [PaymentCalculationController::class, 'calculate'])->name('payment-calculations.calculate');
+});
+
+Route::resource('payment-batches', PaymentBatchController::class)->except(['create']);
+Route::get('/payment-batches/{semester}/create', [PaymentBatchController::class, 'create'])->name('payment-batches.create');
+
 
     // 4. Báo cáo
     Route::prefix('reports')->group(function () {

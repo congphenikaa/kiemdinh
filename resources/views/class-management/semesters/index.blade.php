@@ -9,7 +9,7 @@
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Năm học</th>
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày bắt đầu</th>
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày kết thúc</th>
-    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loại học kỳ</th>
+    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loại</th>
     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
     <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
 @endsection
@@ -27,24 +27,25 @@
             {{ $semester->academicYear->name ?? '---' }}
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ \Carbon\Carbon::parse($semester->start_date)->format('d/m/Y') }}
+            {{ $semester->start_date->format('d/m/Y') }}
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ \Carbon\Carbon::parse($semester->end_date)->format('d/m/Y') }}
+            {{ $semester->end_date->format('d/m/Y') }}
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ ucfirst($semester->type) }}
+            {{ $semester->type == 1 ? 'Học kỳ I' : 'Học kỳ II' }}
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm">
-            @if($semester->is_active)
-                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-check-circle mr-1"></i> Đang hoạt động
-                </span>
-            @else
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-                    <i class="fas fa-times-circle mr-1"></i> Không hoạt động
-                </span>
-            @endif
+            <form action="{{ route('semesters.toggleActive', $semester) }}" method="POST" class="inline">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="focus:outline-none">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium cursor-pointer 
+                        {{ $semester->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                        {{ $semester->is_active ? 'Đang hoạt động' : 'Không hoạt động' }}
+                    </span>
+                </button>
+            </form>
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
             <a href="{{ route('semesters.edit', $semester) }}" 
@@ -52,11 +53,16 @@
                title="Chỉnh sửa">
                 <i class="fas fa-edit mr-1"></i> Sửa
             </a>
-            <button class="btn-delete inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors" 
-                    data-id="{{ $semester->id }}"
-                    title="Xóa">
-                <i class="fas fa-trash-alt mr-1"></i> Xóa
-            </button>
+            <form action="{{ route('semesters.destroy', $semester) }}" method="POST" class="inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" 
+                        class="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                        onclick="return confirm('Bạn có chắc chắn muốn xóa học kỳ này?')"
+                        title="Xóa">
+                    <i class="fas fa-trash-alt mr-1"></i> Xóa
+                </button>
+            </form>
         </td>
     </tr>
     @empty

@@ -10,7 +10,12 @@ class PaymentConfig extends Model
     use HasFactory;
 
     protected $fillable = [
-        'base_salary_per_session',
-        'practice_session_rate'
+        'academic_year_id',
+        'base_salary_per_session'
     ];
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
 }

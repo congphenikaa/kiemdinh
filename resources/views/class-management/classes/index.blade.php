@@ -34,7 +34,7 @@
             {{ \Carbon\Carbon::parse($clazz->end_date)->format('d/m/Y') }}
         </td>
         <td class="px-4 py-4 text-sm">
-            @if($clazz->status)
+            @if($clazz->status == 'open')
                 <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                     <i class="fas fa-check-circle mr-1"></i> Đang mở
                 </span>

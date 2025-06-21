@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_configs', function (Blueprint $table) {
+       Schema::create('payment_configs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->decimal('base_salary_per_session', 10, 2); // Lương cơ bản/tiết
-            $table->decimal('practice_session_rate', 10, 2)->default(1.2); // Hệ số tiết thực hành
             $table->timestamps();
         });
     }

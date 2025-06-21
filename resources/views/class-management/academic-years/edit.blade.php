@@ -33,7 +33,8 @@
                 <p class="mt-1 text-xs text-gray-500">Ngày bắt đầu năm học</p>
             </div>
             <div class="md:col-span-2">
-                <input type="date" id="start_date" name="start_date" value="{{ old('start_date', $academicYear->start_date) }}" required
+                <input type="date" id="start_date" name="start_date" 
+                       value="{{ old('start_date', $academicYear->start_date->format('Y-m-d')) }}" required
                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                        min="{{ now()->subYears(1)->format('Y-m-d') }}"
                        max="{{ now()->addYears(5)->format('Y-m-d') }}">
@@ -52,7 +53,8 @@
                 <p class="mt-1 text-xs text-gray-500">Ngày kết thúc năm học</p>
             </div>
             <div class="md:col-span-2">
-                <input type="date" id="end_date" name="end_date" value="{{ old('end_date', $academicYear->end_date) }}" required
+                <input type="date" id="end_date" name="end_date" 
+                       value="{{ old('end_date', $academicYear->end_date->format('Y-m-d')) }}" required
                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                        min="{{ now()->subYears(1)->format('Y-m-d') }}"
                        max="{{ now()->addYears(5)->format('Y-m-d') }}">

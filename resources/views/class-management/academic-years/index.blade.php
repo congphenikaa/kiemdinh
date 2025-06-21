@@ -32,10 +32,10 @@
             </div>
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ \Carbon\Carbon::parse($year->start_date)->format('d/m/Y') }}
+            {{ $year->start_date->format('d/m/Y') }}
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ \Carbon\Carbon::parse($year->end_date)->format('d/m/Y') }}
+            {{ $year->end_date->format('d/m/Y') }}
         </td>
         <td class="px-4 py-4 whitespace-nowrap text-sm">
             @if($year->is_active)
