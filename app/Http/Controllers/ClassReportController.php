@@ -63,7 +63,7 @@ class ClassReportController extends Controller
             )
             ->join('courses', 'classes.course_id', '=', 'courses.id')
             ->join('faculties', 'courses.faculty_id', '=', 'faculties.id')
-            ->when($semesterId, function($q) use ($semesterId) {
+            ->when($semesterId, function($q) use ($semesterId) {    
                 return $q->where('classes.semester_id', $semesterId);
             })
             ->groupBy('faculties.name')
@@ -82,6 +82,7 @@ class ClassReportController extends Controller
         $semesters = Semester::with('academicYear')
             ->orderBy('start_date', 'desc')
             ->get();
+
 
         return view('class-management.reports.index', array_merge($stats, [
             'byStatus' => $byStatus,

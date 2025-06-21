@@ -154,7 +154,7 @@
                         <li class="{{ request()->routeIs('class-reports.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('class-reports.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-chart-pie w-5 mr-3 text-center"></i>
-                                <span>2.6. Thống kê lớp học</span>
+                                <span>2.7. Thống kê lớp học</span>
                             </a>
                         </li>
                     </ul>
