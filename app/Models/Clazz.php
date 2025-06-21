@@ -45,7 +45,7 @@ class Clazz extends Model
 
    public function teachingAssignments()
     {
-        return $this->hasMany(TeachingAssignment::class);
+        return $this->hasMany(TeachingAssignment::class, 'class_id');
     }
 
     public function teachers()

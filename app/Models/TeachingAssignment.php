@@ -21,7 +21,7 @@ class TeachingAssignment extends Model
 
     public function class()
     {
-        return $this->belongsTo(Clazz::class);
+        return $this->belongsTo(Clazz::class, 'class_id');
     }
 
     // Kiểm tra xem giáo viên đã được phân công cho lớp này chưa
