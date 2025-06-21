@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý giáo viên</title>
+    <title>Hệ thống QLDT</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -14,166 +14,220 @@
         .child-menu {
             transition: max-height 0.3s ease-in-out;
         }
+        .sidebar-mobile-hidden {
+            transform: translateX(-100%);
+        }
+        @media (min-width: 1024px) {
+            .sidebar-mobile-hidden {
+                transform: translateX(0);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <div class="w-64 bg-gray-800 text-gray-100 h-screen fixed shadow-lg">
+        <div id="sidebar" class="w-64 bg-gray-800 text-gray-100 h-screen fixed shadow-lg lg:static lg:translate-x-0 transform transition-transform duration-200 ease-in-out sidebar-mobile-hidden">
             <div class="p-5 border-b border-gray-700 text-center">
                 <h2 class="text-white text-xl font-semibold">Hệ thống quản lý</h2>
             </div>
 
             <ul class="space-y-1 p-2">
-                <!-- Quản lý giáo viên -->
-                <li class="menu-parent {{ request()->is('dashboard', 'degrees*', 'faculties*', 'teachers*', 'teacher-statistics*') ? 'active open' : '' }}">
+                <!-- Dashboard -->
+                <li class="{{ request()->routeIs('dashboard') ? 'bg-blue-600' : '' }}">
+                    <a href="{{ route('dashboard') }}" class="flex items-center p-3 hover:bg-gray-700 rounded transition-colors">
+                        <i class="fas fa-tachometer-alt w-5 mr-3 text-center"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- 1. Quản lý giáo viên -->
+                <li class="menu-parent {{ request()->routeIs('teachers*', 'degrees*', 'faculties*', 'teacher-reports*') ? 'active open' : '' }}">
                     <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
                         <div class="flex items-center">
                             <i class="fas fa-chalkboard-teacher w-5 mr-3 text-center"></i>
-                            <span>Quản lý giáo viên</span>
+                            <span>1. Quản lý giáo viên</span>
                         </div>
                         <i class="dropdown-icon fas fa-chevron-down text-xs transition-transform"></i>
                     </div>
                     <ul class="child-menu bg-gray-700 overflow-hidden max-h-0 rounded">
-                        <li class="{{ request()->routeIs('dashboard') ? 'bg-blue-600' : '' }}">
-                            <a href="{{ route('dashboard') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-tachometer-alt w-5 mr-3 text-center"></i>
-                                <span>Dashboard</span>
-                            </a>
-                        </li>
+                        <!-- Danh mục bằng cấp -->
                         <li class="{{ request()->routeIs('degrees.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('degrees.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-graduation-cap w-5 mr-3 text-center"></i>
-                                <span>Quản lý bằng cấp</span>
+                                <span>1.1. Danh mục bằng cấp</span>
                             </a>
                         </li>
+                        
+                        <!-- Quản lý khoa -->
                         <li class="{{ request()->routeIs('faculties.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('faculties.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-university w-5 mr-3 text-center"></i>
-                                <span>Quản lý khoa</span>
+                                <span>1.2. Quản lý khoa</span>
                             </a>
                         </li>
+                        
+                        <!-- Quản lý giáo viên -->
                         <li class="{{ request()->routeIs('teachers.*') ? 'bg-blue-600' : '' }}">
                             <a href="{{ route('teachers.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-chalkboard-teacher w-5 mr-3 text-center"></i>
-                                <span>Quản lý giáo viên</span>
+                                <i class="fas fa-user-tie w-5 mr-3 text-center"></i>
+                                <span>1.3. Quản lý giáo viên</span>
                             </a>
                         </li>
-                        <li class="{{ request()->routeIs('statistics.*') ? 'bg-blue-600' : '' }}">
-                            <a href="{{ route('statistics.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                        
+                        <!-- Thống kê giáo viên -->
+                        <li class="{{ request()->routeIs('teacher-reports.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('teacher-reports.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-chart-bar w-5 mr-3 text-center"></i>
-                                <span>Thống kê giáo viên</span>
+                                <span>1.5. Thống kê giáo viên</span>
                             </a>
                         </li>
                     </ul>
                 </li>
 
-                <!-- Quản lý lớp học -->
-                <li class="menu-parent">
+                <!-- 2. Quản lý lớp học -->
+                <li class="menu-parent {{ request()->routeIs('classes*', 'courses*', 'semesters*', 'schedules*', 'academic-years*', 'class-reports*', 'teaching-assignments*') ? 'active open' : '' }}">
                     <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
                         <div class="flex items-center">
-                            <i class="fas fa-school w-5 mr-3 text-center"></i>
-                            <span>Quản lý lớp học</span>
+                            <i class="fas fa-chalkboard w-5 mr-3 text-center"></i>
+                            <span>2. Quản lý lớp học</span>
                         </div>
                         <i class="dropdown-icon fas fa-chevron-down text-xs transition-transform"></i>
                     </div>
                     <ul class="child-menu bg-gray-700 overflow-hidden max-h-0 rounded">
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                        <!-- Quản lý học phần -->
+                        <li class="{{ request()->routeIs('courses.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('courses.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-book w-5 mr-3 text-center"></i>
-                                <span>Quản lý học phần</span>
+                                <span>2.1. Quản lý học phần</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                        
+                        <!-- Quản lý năm học -->
+                        <li class="{{ request()->routeIs('academic-years.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('academic-years.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-calendar-alt w-5 mr-3 text-center"></i>
-                                <span>Quản lý kì học</span>
+                                <span>2.2. Quản lý năm học</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-table w-5 mr-3 text-center"></i>
-                                <span>Quản lý TKB/Lớp học</span>
+                        
+                        <!-- Quản lý kỳ học -->
+                        <li class="{{ request()->routeIs('semesters.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('semesters.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-calendar-week w-5 mr-3 text-center"></i>
+                                <span>2.3. Quản lý kỳ học</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                        
+                        <!-- Quản lý lớp học -->
+                        <li class="{{ request()->routeIs('classes.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('classes.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-users w-5 mr-3 text-center"></i>
+                                <span>2.4. Quản lý lớp học</span>
+                            </a>
+                        </li>
+
+                        <!-- Phân công giảng dạy -->
+                        <li class="{{ request()->routeIs('teaching-assignments.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('teaching-assignments.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-tasks w-5 mr-3 text-center"></i>
+                                <span>2.5. Phân công giảng dạy</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Quản lý TKB -->
+                        <li class="{{ request()->routeIs('schedules.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('schedules.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-calendar-day w-5 mr-3 text-center"></i>
+                                <span>2.6. Quản lý thời khóa biểu</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Thống kê lớp học -->
+                        <li class="{{ request()->routeIs('class-reports.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('class-reports.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-chart-pie w-5 mr-3 text-center"></i>
-                                <span>Thống kê các lớp mở</span>
+                                <span>2.6. Thống kê lớp học</span>
                             </a>
                         </li>
                     </ul>
                 </li>
 
-                <!-- Tính tiền dạy -->
-                <li class="menu-parent">
+                <!-- 3. Tính tiền dạy -->
+                <li class="menu-parent {{ request()->routeIs('teacher-payments*', 'payment-configs*', 'payment-batches*', 'class-size-coefficients*') ? 'active open' : '' }}">
                     <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
                         <div class="flex items-center">
                             <i class="fas fa-money-bill-wave w-5 mr-3 text-center"></i>
-                            <span>Tính tiền dạy</span>
+                            <span>3. Tính tiền dạy</span>
                         </div>
                         <i class="dropdown-icon fas fa-chevron-down text-xs transition-transform"></i>
                     </div>
                     <ul class="child-menu bg-gray-700 overflow-hidden max-h-0 rounded">
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-coins w-5 mr-3 text-center"></i>
-                                <span>Thiết lập mức tiền/tiết</span>
+                        <!-- Thiết lập mức lương -->
+                        <li class="{{ request()->routeIs('payment-configs.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('payment-configs.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-cog w-5 mr-3 text-center"></i>
+                                <span>3.1. Thiết lập mức lương</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-user-graduate w-5 mr-3 text-center"></i>
-                                <span>Hệ số giáo viên theo bằng cấp</span>
+                        
+                        <!-- Thiết lập hệ số lớp -->
+                        <li class="{{ request()->routeIs('class-size-coefficients.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('class-size-coefficients.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-sliders-h w-5 mr-3 text-center"></i>
+                                <span>3.2. Hệ số sĩ số lớp</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-users w-5 mr-3 text-center"></i>
-                                <span>Hệ số lớp theo số lượng HV</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-tasks w-5 mr-3 text-center"></i>
-                                <span>Phân công giảng viên</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                        
+                        <!-- Tính tiền dạy -->
+                        <li class="{{ request()->routeIs('teacher-payments.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('teacher-payments.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-calculator w-5 mr-3 text-center"></i>
-                                <span>Tính tiền dạy theo kì</span>
+                                <span>3.4. Tính tiền dạy theo kì</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Quản lý đợt thanh toán -->
+                        <li class="{{ request()->routeIs('payment-batches.*') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('payment-batches.index') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-file-invoice-dollar w-5 mr-3 text-center"></i>
+                                <span>3.5. Đợt thanh toán</span>
                             </a>
                         </li>
                     </ul>
                 </li>
 
-                <!-- Báo cáo -->
-                <li class="menu-parent">
+                <!-- 4. Báo cáo -->
+                <li class="menu-parent {{ request()->routeIs('reports*') ? 'active open' : '' }}">
                     <div class="parent-item flex items-center justify-between p-3 hover:bg-gray-700 rounded cursor-pointer transition-colors">
                         <div class="flex items-center">
                             <i class="fas fa-file-alt w-5 mr-3 text-center"></i>
-                            <span>Báo cáo</span>
+                            <span>4. Báo cáo</span>
                         </div>
                         <i class="dropdown-icon fas fa-chevron-down text-xs transition-transform"></i>
                     </div>
                     <ul class="child-menu bg-gray-700 overflow-hidden max-h-0 rounded">
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-user-tie w-5 mr-3 text-center"></i>
-                                <span>Tiền dạy giảng viên theo năm</span>
+                        <!-- Báo cáo tiền dạy giảng viên -->
+                        <li class="{{ request()->routeIs('reports.teacher-payments') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('reports.teacher-payments') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-user-graduate w-5 mr-3 text-center"></i>
+                                <span>4.1. Tiền dạy giảng viên</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
-                                <i class="fas fa-building w-5 mr-3 text-center"></i>
-                                <span>Tiền dạy khoa theo năm</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                        
+                        <!-- Báo cáo tiền dạy khoa -->
+                        <li class="{{ request()->routeIs('reports.faculty-payments') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('reports.faculty-payments') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
                                 <i class="fas fa-university w-5 mr-3 text-center"></i>
-                                <span>Tiền dạy toàn trường</span>
+                                <span>4.2. Tiền dạy theo khoa</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Báo cáo tổng hợp -->
+                        <li class="{{ request()->routeIs('reports.summary') ? 'bg-blue-600' : '' }}">
+                            <a href="{{ route('reports.summary') }}" class="flex items-center p-3 pl-11 hover:bg-gray-600 rounded transition-colors">
+                                <i class="fas fa-chart-line w-5 mr-3 text-center"></i>
+                                <span>4.3. Báo cáo tổng hợp</span>
                             </a>
                         </li>
                     </ul>
@@ -182,14 +236,20 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden ml-64">
+        <div class="flex-1 flex flex-col overflow-hidden lg:ml-0">
             <!-- Header -->
             <header class="bg-white shadow-sm z-10">
                 <div class="flex items-center justify-between p-4">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-800">@yield('title', 'Dashboard')</h2>
-                        <div class="text-sm text-gray-500">
-                            @yield('breadcrumb', 'Trang chủ')
+                    <div class="flex items-center">
+                        <!-- Mobile menu button -->
+                        <button id="mobile-menu-button" class="lg:hidden mr-4 text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">@yield('title', 'Dashboard')</h2>
+                            <div class="text-sm text-gray-500">
+                                @yield('breadcrumb', 'Trang chủ')
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
@@ -260,16 +320,21 @@
                         if (menu !== parentMenu) {
                             menu.classList.remove('open');
                             menu.querySelector('.child-menu').style.maxHeight = '0';
+                            menu.querySelector('.dropdown-icon').classList.remove('transform', 'rotate-180');
                         }
                     });
                     
                     // Toggle menu hiện tại
                     parentMenu.classList.toggle('open');
                     const childMenu = parentMenu.querySelector('.child-menu');
+                    const dropdownIcon = parentMenu.querySelector('.dropdown-icon');
+                    
                     if (parentMenu.classList.contains('open')) {
                         childMenu.style.maxHeight = childMenu.scrollHeight + 'px';
+                        dropdownIcon.classList.add('transform', 'rotate-180');
                     } else {
                         childMenu.style.maxHeight = '0';
+                        dropdownIcon.classList.remove('transform', 'rotate-180');
                     }
                 });
             });
@@ -279,6 +344,7 @@
                 menu.classList.add('open');
                 const childMenu = menu.querySelector('.child-menu');
                 childMenu.style.maxHeight = childMenu.scrollHeight + 'px';
+                menu.querySelector('.dropdown-icon').classList.add('transform', 'rotate-180');
             });
 
             // Modal handling
@@ -304,6 +370,17 @@
                     modal.classList.add('hidden');
                 }
             });
+
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (mobileMenuButton && sidebar) {
+                mobileMenuButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('sidebar-mobile-hidden');
+                });
+            }
+            
             setupSearch();
         });
 
@@ -354,3 +431,6 @@
     @stack('scripts')
 </body>
 </html>
+
+
+
