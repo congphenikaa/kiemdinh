@@ -99,10 +99,16 @@ class PaymentBatchController extends Controller
         return view('payment.batches.show', compact('paymentBatch', 'summary'));
     }
 
+
+
     public function edit(PaymentBatch $paymentBatch)
     {
-        $paymentBatch->load(['semester', 'payments.teacher']);
-        return view('payment.batches.edit', compact('paymentBatch'));
+        $paymentBatch->load(['semester.academicYear', 'payments.teacher']);
+        
+        return view('payment.batches.edit', [
+            'batch' => $paymentBatch,
+            'summary' => $this->getPaymentSummary($paymentBatch)
+        ]);
     }
 
     public function update(Request $request, PaymentBatch $paymentBatch)
@@ -119,6 +125,7 @@ class PaymentBatchController extends Controller
 
             $paymentBatch->update($validated);
 
+            // Update payment statuses if batch status changed
             if ($validated['status'] === 'completed') {
                 $paymentBatch->payments()->update([
                     'status' => 'paid',
@@ -254,4 +261,6 @@ class PaymentBatchController extends Controller
 
         return $e->getMessage();
     }
+
+    
 }

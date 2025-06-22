@@ -57,7 +57,7 @@ class Clazz extends Model
 
     public function statistics()
     {
-        return $this->hasOne(ClassStatistics::class);
+        return $this->hasOne(ClassStatistics::class,'class_id');
     }
 
     public function payments()
