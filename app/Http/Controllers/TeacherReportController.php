@@ -9,43 +9,74 @@ use Illuminate\Http\Request;
 
 class TeacherReportController extends Controller
 {
-    // 1.5.1 - Trang thống kê chính
     public function index(Request $request)
     {
-        // Lấy tham số filter
-        $facultyId = $request->input('faculty');
-        $degreeId = $request->input('degree');
-        $status = $request->input('status', 'active');
-
-        // Query cơ bản
-        $query = Teacher::query()
-            ->with(['faculty', 'degree', 'department']);
-
-        // Áp dụng bộ lọc
-        if ($facultyId) {
-            $query->where('faculty_id', $facultyId);
-        }
-
-        if ($degreeId) {
-            $query->where('degree_id', $degreeId);
-        }
-
-        if ($status === 'active') {
-            $query->where('is_active', true);
-        } elseif ($status === 'inactive') {
-            $query->where('is_active', false);
-        }
-
-        // Thống kê tổng hợp
-        $stats = [
-            'total' => $query->count(),
-            'active' => Teacher::where('is_active', true)->count(),
-            'inactive' => Teacher::where('is_active', false)->count(),
-            'byFaculty' => Faculty::withCount('teachers')->get(),
-            'byDegree' => Degree::withCount('teachers')->get()
+        // Get filter parameters
+        $filters = [
+            'faculty' => $request->input('faculty'),
+            'degree' => $request->input('degree'),
+            'status' => $request->input('status', 'active') // Default to active
         ];
 
-        // Dữ liệu cho dropdown filter
+        // Base query for all filtered stats
+        $filteredQuery = Teacher::query();
+
+        // Apply filters to main query
+        if ($filters['faculty']) {
+            $filteredQuery->where('faculty_id', $filters['faculty']);
+        }
+
+        if ($filters['degree']) {
+            $filteredQuery->where('degree_id', $filters['degree']);
+        }
+
+        if ($filters['status'] === 'active') {
+            $filteredQuery->where('is_active', true);
+        } elseif ($filters['status'] === 'inactive') {
+            $filteredQuery->where('is_active', false);
+        }
+
+        // Get filtered counts
+        $filteredStats = [
+            'filtered_total' => $filteredQuery->count(),
+            'filtered_active' => (clone $filteredQuery)->where('is_active', true)->count(),
+            'filtered_inactive' => (clone $filteredQuery)->where('is_active', false)->count(),
+        ];
+
+        // Prepare statistics data (all filtered)
+        $stats = [
+            'total' => $filteredStats['filtered_total'],
+            'active' => $filteredStats['filtered_active'],
+            'inactive' => $filteredStats['filtered_inactive'],
+            'byFaculty' => Faculty::withCount(['teachers' => function($q) use ($filters) {
+                if ($filters['faculty']) {
+                    $q->where('faculty_id', $filters['faculty']);
+                }
+                if ($filters['degree']) {
+                    $q->where('degree_id', $filters['degree']);
+                }
+                if ($filters['status'] === 'active') {
+                    $q->where('is_active', true);
+                } elseif ($filters['status'] === 'inactive') {
+                    $q->where('is_active', false);
+                }
+            }])->orderBy('name')->get(),
+            'byDegree' => Degree::withCount(['teachers' => function($q) use ($filters) {
+                if ($filters['faculty']) {
+                    $q->where('faculty_id', $filters['faculty']);
+                }
+                if ($filters['degree']) {
+                    $q->where('degree_id', $filters['degree']);
+                }
+                if ($filters['status'] === 'active') {
+                    $q->where('is_active', true);
+                } elseif ($filters['status'] === 'inactive') {
+                    $q->where('is_active', false);
+                }
+            }])->orderBy('salary_coefficient', 'desc')->get()
+        ];
+
+        // Prepare filter dropdown data
         $filterData = [
             'faculties' => Faculty::orderBy('name')->get(),
             'degrees' => Degree::orderBy('salary_coefficient', 'desc')->get()
@@ -55,11 +86,8 @@ class TeacherReportController extends Controller
             $stats,
             $filterData,
             [
-                'currentFilters' => [
-                    'faculty' => $facultyId,
-                    'degree' => $degreeId,
-                    'status' => $status
-                ]
+                'currentFilters' => $filters,
+                'hasNoResults' => $stats['total'] === 0
             ]
         ));
     }
