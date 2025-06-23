@@ -16,8 +16,9 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Học kỳ</label>
                     <select name="semester" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach($semesters as $semester)
-                            <option value="{{ $semester->id }}" {{ $semesterId == $semester->id ? 'selected' : '' }}>
-                                {{ $semester->name }} ({{ $semester->academicYear->name }})
+                            <option value="{{ $semester->id }}" 
+                                {{ (string)$semester->id === (string)$semesterId ? 'selected' : '' }}>
+                                {{ $semester->name }} ({{ $semester->academicYear->name ?? '' }})
                             </option>
                         @endforeach
                     </select>
@@ -26,9 +27,13 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Giáo viên</label>
                     <select name="teacher" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">-- Chọn giáo viên --</option>
-                        @foreach($teachers as $teacher)
-                            <option value="{{ $teacher->id }}" {{ $teacherId == $teacher->id ? 'selected' : '' }}>
-                                {{ $teacher->code }} - {{ $teacher->name }} ({{ $teacher->faculty->short_name }})
+                        @foreach($teachers as $t)
+                            <option value="{{ $t->id }}" 
+                                {{ (string)$t->id === (string)$teacherId ? 'selected' : '' }}>
+                                {{ $t->code ?? '' }} - {{ $t->name ?? '' }} 
+                                @isset($t->faculty)
+                                    ({{ $t->faculty->short_name ?? '' }})
+                                @endisset
                             </option>
                         @endforeach
                     </select>
@@ -45,7 +50,7 @@
         </div>
     </div>
 
-    @if($teacherId && $semesterId)
+    @if($teacherId && $semesterId && $teacher)
         <!-- Summary Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <!-- Total Payment Card -->
@@ -61,12 +66,6 @@
                             <p class="text-sm font-medium text-gray-500 truncate">Tổng tiền</p>
                             <p class="text-xl font-semibold text-gray-900">
                                 {{ number_format($stats->total_amount) }} VNĐ
-                            </p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Tổng thanh toán học kỳ
                             </p>
                         </div>
                     </div>
@@ -87,12 +86,6 @@
                             <p class="text-xl font-semibold text-gray-900">
                                 {{ $stats->total_classes }}
                             </p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Tổng số lớp giảng dạy
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -111,12 +104,6 @@
                             <p class="text-sm font-medium text-gray-500 truncate">Số buổi dạy</p>
                             <p class="text-xl font-semibold text-gray-900">
                                 {{ $stats->total_sessions }}
-                            </p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Tổng số buổi đã giảng dạy
                             </p>
                         </div>
                     </div>
@@ -161,27 +148,22 @@
                     <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                         <h5 class="text-lg font-semibold text-gray-800">Thông tin giáo viên</h5>
                     </div>
-                    <div class="p-6 text-center">
-                        <div class="mb-4">
-                            <div class="relative inline-block">
-                                <img src="{{ asset('images/default-avatar.jpg') }}" 
-                                     class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover" 
-                                     alt="Avatar">
-                                @if($teacher->is_active)
-                                    <span class="absolute bottom-0 right-0 block h-4 w-4 rounded-full bg-green-500 border-2 border-white"></span>
-                                @endif
-                            </div>
-                        </div>
-                        <h4 class="text-xl font-bold text-gray-900 mb-1">{{ $teacher->name }}</h4>
-                        <p class="text-gray-600 mb-3">{{ $teacher->code }}</p>
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-900 mb-1">{{ $teacher->name ?? 'N/A' }}</h4>
+                        <p class="text-gray-600 mb-3">{{ $teacher->code ?? 'N/A' }}</p>
                         
-                        <div class="flex justify-center space-x-2 mb-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $teacher->degree->short_name ?? 'N/A' }}
-                            </span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                {{ $teacher->faculty->short_name }}
-                            </span>
+                        <div class="flex space-x-2 mb-4">
+                            @isset($teacher->degree)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ $teacher->degree->short_name ?? 'N/A' }}
+                                </span>
+                            @endisset
+                            
+                            @isset($teacher->faculty)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ $teacher->faculty->short_name ?? 'N/A' }}
+                                </span>
+                            @endisset
                         </div>
                         
                         <hr class="my-4">
@@ -256,10 +238,12 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ $index + 1 }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ $payment->class->class_code }}
+                                                {{ $payment->class->class_code ?? 'N/A' }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $payment->class->course->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $payment->class->course->name ?? 'N/A' }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{{ $payment->total_sessions }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                                             {{ $payment->degree_coefficient }} × {{ $payment->size_coefficient }}
@@ -269,7 +253,7 @@
                                             {{ number_format($payment->total_amount) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            {{ $payment->payment_date->format('d/m/Y') }}
+                                            {{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : 'N/A' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $payment->status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
@@ -325,28 +309,36 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($teachingAssignments as $assignment)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ $assignment->class->class_code }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $assignment->class->course->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                                            {{ $assignment->class->schedules->count() }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                                            {{ $assignment->class->current_students ?? 0 }}/{{ $assignment->class->max_students }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                                {{ $assignment->class->status === 'open' ? 'bg-green-100 text-green-800' : 
-                                                   ($assignment->class->status === 'finished' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') }}">
-                                                {{ $assignment->class->status === 'open' ? 'Đang mở' : 
-                                                   ($assignment->class->status === 'finished' ? 'Đã kết thúc' : 'Đã đóng') }}
-                                            </span>
-                                        </td>
-                                    </tr>
+                                    @if($assignment->class)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {{ $assignment->class->class_code ?? 'N/A' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {{ $assignment->class->course->name ?? 'N/A' }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                                {{ $assignment->class->schedules->count() }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                                {{ $assignment->class->current_students ?? 0 }}/{{ $assignment->class->max_students }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                @php
+                                                    $statusClass = [
+                                                        'open' => ['bg-green-100 text-green-800', 'Đang mở'],
+                                                        'finished' => ['bg-blue-100 text-blue-800', 'Đã kết thúc'],
+                                                        'closed' => ['bg-gray-100 text-gray-800', 'Đã đóng']
+                                                    ][$assignment->class->status ?? 'closed'] ?? ['bg-gray-100 text-gray-800', 'N/A'];
+                                                @endphp
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClass[0] }}">
+                                                    {{ $statusClass[1] }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>

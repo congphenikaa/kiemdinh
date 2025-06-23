@@ -16,23 +16,28 @@ class ReportController extends Controller
     // UC4.1 - Teacher Payment Report
     public function teacherPayments(Request $request)
     {
+        // Lấy tham số từ request
         $semesterId = $request->input('semester');
         $teacherId = $request->input('teacher');
         
+        // Lấy danh sách học kỳ để hiển thị trong dropdown
         $semesters = Semester::with('academicYear')
             ->orderBy('start_date', 'desc')
             ->get();
             
-        $teachers = Teacher::with(['faculty', 'degree'])
+        // Lấy danh sách giáo viên (chỉ các trường cần thiết cho dropdown)
+        $teachers = Teacher::select(['id', 'code', 'name', 'faculty_id'])
+            ->with(['faculty:id,short_name']) // Chỉ lấy short_name của khoa
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
         
-        // Set default semester if not selected
+        // Set học kỳ mặc định nếu chưa chọn
         if (!$semesterId && $semesters->isNotEmpty()) {
             $semesterId = $semesters->first()->id;
         }
         
+        // Khởi tạo các biến sẽ sử dụng trong view
         $teacher = null;
         $stats = (object)[
             'total_amount' => 0,
@@ -43,16 +48,29 @@ class ReportController extends Controller
         $monthlyData = collect();
         $teachingAssignments = collect();
         
+        // Xử lý khi đã chọn cả học kỳ và giáo viên
         if ($teacherId && $semesterId) {
-            $teacher = Teacher::with(['faculty', 'degree'])->findOrFail($teacherId);
+            // Lấy thông tin đầy đủ của giáo viên được chọn
+            $teacher = Teacher::with(['faculty', 'degree'])
+                ->where('id', $teacherId)
+                ->first();
+                
+            if (!$teacher) {
+                return redirect()->back()
+                    ->with('error', 'Không tìm thấy thông tin giáo viên')
+                    ->withInput();
+            }
             
-            // Get teaching assignments with class and course info
+            // Lấy danh sách phân công giảng dạy
             $teachingAssignments = TeachingAssignment::with([
                 'class' => function($query) use ($semesterId) {
-                    $query->with(['course', 'semester', 'schedules' => function($q) {
-                        $q->where('is_taught', true);
-                    }])
-                    ->where('semester_id', $semesterId);
+                    $query->with([
+                        'course', 
+                        'semester', 
+                        'schedules' => function($q) {
+                            $q->where('is_taught', true);
+                        }
+                    ])->where('semester_id', $semesterId);
                 },
                 'class.statistics'
             ])
@@ -61,14 +79,14 @@ class ReportController extends Controller
             ->filter(function($assignment) {
                 return $assignment->class !== null;
             });
-            
-            // Calculate statistics from teaching assignments
+                
+            // Tính toán thống kê từ phân công giảng dạy
             $stats->total_classes = $teachingAssignments->count();
             $stats->total_sessions = $teachingAssignments->sum(function($assignment) {
                 return $assignment->class->schedules->count();
             });
             
-            // Get payment statistics
+            // Lấy thống kê thanh toán
             $paymentStats = TeacherPayment::where('teacher_id', $teacherId)
                 ->where('semester_id', $semesterId)
                 ->select(
@@ -80,11 +98,11 @@ class ReportController extends Controller
                 
             if ($paymentStats) {
                 $stats->total_amount = $paymentStats->total_amount;
-                // Use payment sessions if available, otherwise use schedules count
+                // Ưu tiên dùng số buổi từ thanh toán, nếu không có thì dùng từ lịch dạy
                 $stats->total_sessions = $paymentStats->total_sessions ?: $stats->total_sessions;
             }
             
-            // Get detailed payments with related data
+            // Lấy chi tiết các khoản thanh toán
             $payments = TeacherPayment::with([
                     'class' => function($query) {
                         $query->with('course');
@@ -96,7 +114,7 @@ class ReportController extends Controller
                 ->orderBy('payment_date', 'desc')
                 ->get();
             
-            // Get monthly payment data for chart
+            // Lấy dữ liệu thanh toán theo tháng để vẽ biểu đồ
             $monthlyData = TeacherPayment::where('teacher_id', $teacherId)
                 ->where('semester_id', $semesterId)
                 ->whereNotNull('payment_date')
