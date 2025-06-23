@@ -16,8 +16,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Học kỳ</label>
                     <select name="semester" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach($semesters as $semester)
-                            <option value="{{ $semester->id }}" {{ $semesterId == $semester->id ? 'selected' : '' }}>
-                                {{ $semester->name }} ({{ $semester->academicYear->name }})
+                            <option value="{{ $semester->id }}" {{ (string)$semester->id === (string)$semesterId ? 'selected' : '' }}>
+                                {{ $semester->name }} ({{ $semester->academicYear->name ?? '' }})
                             </option>
                         @endforeach
                     </select>
@@ -26,9 +26,9 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Khoa</label>
                     <select name="faculty" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">-- Chọn khoa --</option>
-                        @foreach($faculties as $faculty)
-                            <option value="{{ $faculty->id }}" {{ $facultyId == $faculty->id ? 'selected' : '' }}>
-                                {{ $faculty->name }} ({{ $faculty->short_name }})
+                        @foreach($faculties as $f)
+                            <option value="{{ $f->id }}" {{ (string)$f->id === (string)$facultyId ? 'selected' : '' }}>
+                                {{ $f->name ?? '' }} ({{ $f->short_name ?? '' }})
                             </option>
                         @endforeach
                     </select>
@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    @if($facultyId && $semesterId)
+    @if($facultyId && $semesterId && $faculty)
         <!-- Summary Stats -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <!-- Total Payment Card -->
@@ -137,12 +137,12 @@
                         <div class="mb-4">
                             <div class="relative inline-block">
                                 <div class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white text-3xl font-bold">
-                                    {{ substr($faculty->short_name, 0, 2) }}
+                                    {{ substr($faculty->short_name ?? '', 0, 2) }}
                                 </div>
                             </div>
                         </div>
-                        <h4 class="text-xl font-bold text-gray-900 mb-1">{{ $faculty->name }}</h4>
-                        <p class="text-gray-600 mb-3">{{ $faculty->short_name }}</p>
+                        <h4 class="text-xl font-bold text-gray-900 mb-1">{{ $faculty->name ?? 'N/A' }}</h4>
+                        <p class="text-gray-600 mb-3">{{ $faculty->short_name ?? 'N/A' }}</p>
                         
                         <hr class="my-4">
                         
@@ -154,7 +154,7 @@
                                     </svg>
                                 </div>
                                 <div class="ml-2 text-sm text-gray-700">
-                                    {{ $faculty->teachers()->count() }} giáo viên
+                                    {{ $faculty->teachers()->count() ?? 0 }} giáo viên
                                 </div>
                             </div>
                             
@@ -165,7 +165,7 @@
                                     </svg>
                                 </div>
                                 <div class="ml-2 text-sm text-gray-700">
-                                    {{ $faculty->courses()->count() }} môn học
+                                    {{ $faculty->courses()->count() ?? 0 }} môn học
                                 </div>
                             </div>
                             
@@ -176,7 +176,7 @@
                                     </svg>
                                 </div>
                                 <div class="ml-2 text-sm text-gray-700">
-                                    {{ $stats->class_count }} lớp học trong kỳ này
+                                    {{ $stats->class_count ?? 0 }} lớp học trong kỳ này
                                 </div>
                             </div>
                         </div>
@@ -192,23 +192,25 @@
                         @if($topTeachers->isNotEmpty())
                             <div class="space-y-4">
                                 @foreach($topTeachers as $index => $teacher)
-                                    <div class="flex items-start">
-                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold">
-                                            {{ $index + 1 }}
-                                        </div>
-                                        <div class="ml-4 flex-1">
-                                            <div class="flex items-center justify-between">
-                                                <h4 class="text-sm font-medium text-gray-900">{{ $teacher->teacher->name }}</h4>
-                                                <span class="text-sm font-semibold text-blue-600">
-                                                    {{ number_format($teacher->total_amount) }} VNĐ
-                                                </span>
+                                    @if($teacher->teacher)
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold">
+                                                {{ $index + 1 }}
                                             </div>
-                                            <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
-                                                <span>{{ $teacher->teacher->degree->short_name ?? 'N/A' }}</span>
-                                                <span>{{ $teacher->total_sessions }} buổi</span>
+                                            <div class="ml-4 flex-1">
+                                                <div class="flex items-center justify-between">
+                                                    <h4 class="text-sm font-medium text-gray-900">{{ $teacher->teacher->name ?? 'N/A' }}</h4>
+                                                    <span class="text-sm font-semibold text-blue-600">
+                                                        {{ number_format($teacher->total_amount) }} VNĐ
+                                                    </span>
+                                                </div>
+                                                <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
+                                                    <span>{{ $teacher->teacher->degree->short_name ?? 'N/A' }}</span>
+                                                    <span>{{ $teacher->total_sessions }} buổi</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 @endforeach
                             </div>
                         @else
@@ -322,7 +324,7 @@
                 const departmentChart = new Chart(deptCtx, {
                     type: 'pie',
                     data: {
-                        labels: {!! json_encode($departmentData->pluck('course.faculty.name')) !!},
+                        labels: {!! json_encode($departmentData->pluck('class.course.faculty.name')) !!},
                         datasets: [{
                             data: {!! json_encode($departmentData->pluck('total_amount')) !!},
                             backgroundColor: [
