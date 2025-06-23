@@ -116,141 +116,219 @@ class ReportController extends Controller
     }
 
     // Add this method to your ReportController
-public function facultyPayments(Request $request)
-{
-    $semesterId = $request->input('semester');
-    $facultyId = $request->input('faculty');
-    
-    // Get all semesters for dropdown
-    $semesters = Semester::with('academicYear')
-        ->orderBy('start_date', 'desc')
-        ->get();
+    public function facultyPayments(Request $request)
+    {
+        $semesterId = $request->input('semester');
+        $facultyId = $request->input('faculty');
         
-    // Get all faculties for dropdown
-    $faculties = Faculty::orderBy('name')->get();
-    
-    // Set default semester if not selected
-    if (!$semesterId && $semesters->isNotEmpty()) {
-        $semesterId = $semesters->first()->id;
-    }
-    
-    $faculty = null;
-    $stats = (object)[
-        'total_amount' => 0,
-        'teacher_count' => 0,
-        'average_payment' => 0,
-        'class_count' => 0
-    ];
-    
-    $payments = collect();
-    $departmentData = collect();
-    $trendData = collect();
-    $topTeachers = collect();
-    
-    if ($facultyId && $semesterId) {
-        $faculty = Faculty::findOrFail($facultyId);
-        
-        // Get all payments for faculty in semester
-        $payments = TeacherPayment::with([
-                'teacher.degree',
-                'class.course',
-                'paymentBatch'
-            ])
-            ->whereHas('teacher', function($query) use ($facultyId) {
-                $query->where('faculty_id', $facultyId);
-            })
-            ->where('semester_id', $semesterId)
+        $semesters = Semester::with('academicYear')
+            ->orderBy('start_date', 'desc')
             ->get();
             
-        // Calculate statistics
-        if ($payments->isNotEmpty()) {
-            $stats->total_amount = $payments->sum('total_amount');
-            $stats->teacher_count = $payments->groupBy('teacher_id')->count();
-            $stats->average_payment = $stats->teacher_count > 0 
-                ? $stats->total_amount / $stats->teacher_count 
-                : 0;
-            $stats->class_count = $payments->groupBy('class_id')->count();
+        $faculties = Faculty::orderBy('name')->get();
+        
+        // Set default semester if not selected
+        if (!$semesterId && $semesters->isNotEmpty()) {
+            $semesterId = $semesters->first()->id;
+        }
+        
+        $faculty = null;
+        $stats = (object)[
+            'total_amount' => 0,
+            'teacher_count' => 0,
+            'average_payment' => 0,
+            'class_count' => 0
+        ];
+        $payments = collect();
+        $departmentData = collect();
+        $topTeachers = collect();
+        $trendData = collect();
+        
+        if ($facultyId && $semesterId) {
+            $faculty = Faculty::findOrFail($facultyId);
             
-            // Get data for department pie chart (group by course faculty)
-            $departmentData = $payments->groupBy('class.course.faculty_id')
-                ->map(function($items, $facultyId) {
-                    $faculty = Faculty::find($facultyId);
-                    return [
-                        'faculty' => $faculty ? $faculty->short_name : 'Khác',
-                        'total' => $items->sum('total_amount'),
-                        'color' => $this->getDepartmentColor($facultyId)
-                    ];
+            // Get payment statistics for the faculty
+            $paymentStats = TeacherPayment::whereHas('teacher', function($q) use ($facultyId) {
+                    $q->where('faculty_id', $facultyId);
                 })
-                ->sortByDesc('total')
-                ->values();
+                ->where('semester_id', $semesterId)
+                ->select(
+                    DB::raw('COALESCE(SUM(total_amount), 0) as total_amount'),
+                    DB::raw('COUNT(DISTINCT teacher_id) as teacher_count'),
+                    DB::raw('COUNT(DISTINCT class_id) as class_count')
+                )
+                ->first();
                 
-            // Get top 5 teachers by total payment
-            $topTeachers = $payments->groupBy('teacher_id')
-                ->map(function($items, $teacherId) {
-                    $teacher = $items->first()->teacher;
-                    return [
-                        'teacher' => $teacher,
-                        'total_amount' => $items->sum('total_amount'),
-                        'class_count' => $items->groupBy('class_id')->count()
-                    ];
+            if ($paymentStats) {
+                $stats->total_amount = $paymentStats->total_amount;
+                $stats->teacher_count = $paymentStats->teacher_count;
+                $stats->class_count = $paymentStats->class_count;
+                $stats->average_payment = $paymentStats->teacher_count > 0 
+                    ? $paymentStats->total_amount / $paymentStats->teacher_count 
+                    : 0;
+            }
+            
+            // Get payment distribution by department (course faculty)
+            $departmentData = TeacherPayment::whereHas('teacher', function($q) use ($facultyId) {
+                $q->where('faculty_id', $facultyId);
+            })
+            ->where('teacher_payments.semester_id', $semesterId)
+            ->join('classes', 'teacher_payments.class_id', '=', 'classes.id')
+            ->join('courses', 'classes.course_id', '=', 'courses.id')
+            ->select(
+                'courses.faculty_id',
+                DB::raw('SUM(teacher_payments.total_amount) as total_amount'),
+                DB::raw('COUNT(DISTINCT teacher_payments.teacher_id) as teacher_count')
+            )
+            ->groupBy('courses.faculty_id')
+            ->with(['class.course.faculty']) // Sửa từ 'course.faculty' thành 'class.course.faculty'
+            ->get();
+            
+            // Get top 5 teachers by payment amount
+            $topTeachers = TeacherPayment::whereHas('teacher', function($q) use ($facultyId) {
+                    $q->where('faculty_id', $facultyId);
                 })
-                ->sortByDesc('total_amount')
-                ->take(5);
-                
-            // Get trend data for last 5 semesters
-            $trendData = TeacherPayment::whereHas('teacher', function($query) use ($facultyId) {
-                    $query->where('faculty_id', $facultyId);
+                ->where('semester_id', $semesterId)
+                ->select(
+                    'teacher_id',
+                    DB::raw('SUM(total_amount) as total_amount'),
+                    DB::raw('COUNT(DISTINCT class_id) as class_count'),
+                    DB::raw('SUM(total_sessions) as total_sessions')
+                )
+                ->groupBy('teacher_id')
+                ->orderBy('total_amount', 'desc')
+                ->limit(5)
+                ->with(['teacher.degree'])
+                ->get();
+            
+            // Get payment trend for last 5 semesters
+            $recentSemesterIds = Semester::orderBy('start_date', 'desc')
+                ->limit(5)
+                ->pluck('id')
+                ->toArray();
+
+            $trendData = TeacherPayment::whereHas('teacher', function($q) use ($facultyId) {
+                    $q->where('faculty_id', $facultyId);
                 })
-                ->whereHas('semester', function($query) use ($semesterId) {
-                    $currentSemester = Semester::find($semesterId);
-                    $query->where('start_date', '<=', $currentSemester->start_date)
-                        ->orderBy('start_date', 'desc');
-                })
-                ->with('semester')
+                ->whereIn('semester_id', $recentSemesterIds)
+                ->join('semesters', 'teacher_payments.semester_id', '=', 'semesters.id')
                 ->select(
                     'semester_id',
+                    'semesters.name as semester_name',
                     DB::raw('SUM(total_amount) as total_amount'),
                     DB::raw('COUNT(DISTINCT teacher_id) as teacher_count')
                 )
-                ->groupBy('semester_id')
-                ->orderBy('semester_id', 'desc')
-                ->limit(5)
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'semester' => $item->semester->name,
-                        'total_amount' => $item->total_amount,
-                        'average_per_teacher' => $item->total_amount / max(1, $item->teacher_count)
-                    ];
-                })
-                ->reverse()
-                ->values();
+                ->groupBy('semester_id', 'semesters.name')
+                ->orderBy('semesters.start_date')
+                ->get();
         }
+        
+        return view('reports.faculty-payments', compact(
+            'semesters', 'faculties', 'semesterId', 'facultyId',
+            'faculty', 'stats', 'departmentData', 'topTeachers', 'trendData'
+        ));
     }
-    
-    return view('reports.faculty-payments', compact(
-        'semesters', 'faculties', 'semesterId', 'facultyId',
-        'faculty', 'stats', 'payments', 'departmentData', 
-        'trendData', 'topTeachers'
-    ));
-}
 
 // Helper method to generate colors for departments
-protected function getDepartmentColor($facultyId)
-{
-    $colors = [
-        '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-        '#EC4899', '#14B8A6', '#F97316', '#64748B', '#06B6D4'
-    ];
-    
-    return $colors[$facultyId % count($colors)];
-}
+
 
 
 
     // UC4.3 - Summary Report
     public function summary(Request $request)
     {
+        $semesterId = $request->input('semester');
+    
+        $semesters = Semester::with('academicYear')
+            ->orderBy('start_date', 'desc')
+            ->get();
+        
+        // Set default semester if not selected
+        if (!$semesterId && $semesters->isNotEmpty()) {
+            $semesterId = $semesters->first()->id;
+        }
+        
+        $stats = (object)[
+            'total_amount' => 0,
+            'teacher_count' => 0,
+            'class_count' => 0,
+            'faculty_count' => 0
+        ];
+        
+        $facultyComparison = collect();
+        $teacherScatterData = collect();
+        $facultyRanking = collect();
+        
+        if ($semesterId) {
+            // Get summary statistics
+            $summaryStats = TeacherPayment::where('semester_id', $semesterId)
+                ->select(
+                    DB::raw('COALESCE(SUM(total_amount), 0) as total_amount'),
+                    DB::raw('COUNT(DISTINCT teacher_id) as teacher_count'),
+                    DB::raw('COUNT(DISTINCT class_id) as class_count')
+                )
+                ->first();
+                
+            if ($summaryStats) {
+                $stats->total_amount = $summaryStats->total_amount;
+                $stats->teacher_count = $summaryStats->teacher_count;
+                $stats->class_count = $summaryStats->class_count;
+                $stats->faculty_count = Faculty::has('teachers')->count();
+            }
+            
+            // Faculty comparison data
+            $facultyComparison = TeacherPayment::where('semester_id', $semesterId)
+                ->join('teachers', 'teacher_payments.teacher_id', '=', 'teachers.id')
+                ->join('faculties', 'teachers.faculty_id', '=', 'faculties.id')
+                ->select(
+                    'faculties.id',
+                    'faculties.name as faculty_name',
+                    'faculties.short_name',
+                    DB::raw('SUM(total_amount) as total_amount'),
+                    DB::raw('COUNT(DISTINCT teacher_payments.teacher_id) as teacher_count'),
+                    DB::raw('COUNT(DISTINCT teacher_payments.class_id) as class_count')
+                )
+                ->groupBy('faculties.id', 'faculties.name', 'faculties.short_name')
+                ->orderBy('total_amount', 'desc')
+                ->get();
+            
+            // Teacher scatter plot data
+            $teacherScatterData = TeacherPayment::where('semester_id', $semesterId)
+                ->join('teachers', 'teacher_payments.teacher_id', '=', 'teachers.id')
+                ->join('faculties', 'teachers.faculty_id', '=', 'faculties.id')
+                ->select(
+                    'teachers.id',
+                    'teachers.name as teacher_name',
+                    'faculties.short_name as faculty_name',
+                    DB::raw('SUM(total_amount) as total_amount'),
+                    DB::raw('COUNT(DISTINCT teacher_payments.class_id) as class_count')
+                )
+                ->groupBy('teachers.id', 'teachers.name', 'faculties.short_name')
+                ->get();
+            
+            // Faculty ranking
+            $facultyRanking = TeacherPayment::where('semester_id', $semesterId)
+                ->join('teachers', 'teacher_payments.teacher_id', '=', 'teachers.id')
+                ->join('faculties', 'teachers.faculty_id', '=', 'faculties.id')
+                ->select(
+                    'faculties.id',
+                    'faculties.name as faculty_name',
+                    'faculties.short_name',
+                    DB::raw('SUM(total_amount) as total_amount'),
+                    DB::raw('COUNT(DISTINCT teacher_payments.teacher_id) as teacher_count'),
+                    DB::raw('COUNT(DISTINCT teacher_payments.class_id) as class_count'),
+                    DB::raw('ROUND(SUM(total_amount) / COUNT(DISTINCT teacher_payments.teacher_id), 2) as average_per_teacher')
+                )
+                ->groupBy('faculties.id', 'faculties.name', 'faculties.short_name')
+                ->orderBy('total_amount', 'desc')
+                ->get();
+        }
+        
+        return view('reports.summary', compact(
+            'semesters', 'semesterId',
+            'stats', 'facultyComparison', 
+            'teacherScatterData', 'facultyRanking'
+        ));
         
     }
 }
