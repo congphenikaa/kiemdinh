@@ -29,7 +29,7 @@ class ClassSizeCoefficientController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'min_students' => 'required|integer|min:1',
             'max_students' => 'required|integer|gt:min_students',
-            'coefficient' => 'required|numeric|min:0',
+            'coefficient' => 'required|numeric|between:-1,1',
         ]);
 
         // Check for overlapping ranges
@@ -62,7 +62,7 @@ class ClassSizeCoefficientController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'min_students' => 'required|integer|min:1',
             'max_students' => 'required|integer|gt:min_students',
-            'coefficient' => 'required|numeric|min:0',
+            'coefficient' => 'required|numeric|between:-1,1',
         ]);
 
         // Check for overlapping ranges excluding current record

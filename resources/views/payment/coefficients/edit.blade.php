@@ -69,7 +69,7 @@
             </div>
             <div class="md:col-span-2">
                 <div class="relative rounded-md shadow-sm">
-                    <input type="number" step="0.01" min="0" name="coefficient" id="coefficient" 
+                    <input type="number" step="0.1" min="-1" name="coefficient" id="coefficient" 
                            value="{{ old('coefficient', $classSizeCoefficient->coefficient) }}" required
                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                            placeholder="Nhập hệ số">
