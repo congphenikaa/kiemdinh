@@ -13,9 +13,9 @@ class DegreeController extends Controller
      */
     public function index()
     {
-        $degrees = Degree::orderBy('name')->paginate(10);
+        $degrees = Degree::withCount('teachers')->orderBy('name')->paginate(10);
         return view('teacher-management.degrees.index', compact('degrees'));
-    }
+    } 
 
     /**
      * Show the form for creating a new resource.
