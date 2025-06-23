@@ -34,8 +34,27 @@ class ClassController extends Controller
             'max_students' => 'required|integer|min:1',
             'current_students' => 'nullable|integer|min:0',
             'schedule_type' => 'required|string|max:100',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($request) {
+                    $semester = Semester::find($request->semester_id);
+                    if ($semester && Carbon::parse($value)->lt($semester->start_date)) {
+                        $fail('The class start date cannot be before the semester start date.');
+                    }
+                }
+            ],
+            'end_date' => [
+                'required',
+                'date',
+                'after_or_equal:start_date',
+                function ($attribute, $value, $fail) use ($request) {
+                    $semester = Semester::find($request->semester_id);
+                    if ($semester && Carbon::parse($value)->gt($semester->end_date)) {
+                        $fail('The class end date cannot exceed the semester end date.');
+                    }
+                }
+            ],
             'status' => 'required|in:open,closed,finished'
         ]);
 
@@ -75,8 +94,27 @@ class ClassController extends Controller
             'max_students' => 'required|integer|min:1',
             'current_students' => 'nullable|integer|min:0',
             'schedule_type' => 'required|string|max:100',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($request) {
+                    $semester = Semester::find($request->semester_id);
+                    if ($semester && Carbon::parse($value)->lt($semester->start_date)) {
+                        $fail('The class start date cannot be before the semester start date.');
+                    }
+                }
+            ],
+            'end_date' => [
+                'required',
+                'date',
+                'after_or_equal:start_date',
+                function ($attribute, $value, $fail) use ($request) {
+                    $semester = Semester::find($request->semester_id);
+                    if ($semester && Carbon::parse($value)->gt($semester->end_date)) {
+                        $fail('The class end date cannot exceed the semester end date.');
+                    }
+                }
+            ],
             'status' => 'required|in:open,closed,finished'
         ]);
 

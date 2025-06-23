@@ -62,12 +62,6 @@
                 @error('salary_coefficient')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-                
-                <!-- Thông tin giáo viên -->
-                <div class="mt-2 text-sm text-gray-500">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    Hiện có <span class="font-medium">{{ $degree->teachers_count ?? 0 }}</span> giáo viên sử dụng hệ số này
-                </div>
             </div>
         </div>
     </div>

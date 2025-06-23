@@ -49,11 +49,29 @@ class SemesterController extends Controller
                             $fail('The semester end date cannot exceed the academic year end date.');
                         }
                     }
+                    $overlapping = Semester::where('academic_year_id', $request->academic_year_id)
+                        ->where(function($query) use ($startDate, $endDate) {
+                            $query->whereBetween('start_date', [$startDate, $endDate])
+                                ->orWhereBetween('end_date', [$startDate, $endDate])
+                                ->orWhere(function($q) use ($startDate, $endDate) {
+                                    $q->where('start_date', '<', $startDate)
+                                        ->where('end_date', '>', $endDate);
+                                });
+                        });
+                    
+                    if (isset($semester)) {
+                        $overlapping->where('id', '!=', $semester->id);
+                    }
+                    
+                    if ($overlapping->exists()) {
+                        $fail('The semester dates overlap with another semester in the same academic year.');
+                    }
                 }
             ],
             'type' => ['required', Rule::in(['1', '2'])],
             'is_active' => 'sometimes|boolean'
         ]);
+
 
         DB::transaction(function () use ($validated, $request) {
             $validated['start_date'] = Carbon::parse($validated['start_date'])->format('Y-m-d');
@@ -104,6 +122,23 @@ class SemesterController extends Controller
                         if ($endDate->gt(Carbon::parse($academicYear->end_date))) {
                             $fail('The semester end date cannot exceed the academic year end date.');
                         }
+                    }
+                    $overlapping = Semester::where('academic_year_id', $request->academic_year_id)
+                        ->where(function($query) use ($startDate, $endDate) {
+                            $query->whereBetween('start_date', [$startDate, $endDate])
+                                ->orWhereBetween('end_date', [$startDate, $endDate])
+                                ->orWhere(function($q) use ($startDate, $endDate) {
+                                    $q->where('start_date', '<', $startDate)
+                                        ->where('end_date', '>', $endDate);
+                                });
+                        });
+                    
+                    if (isset($semester)) {
+                        $overlapping->where('id', '!=', $semester->id);
+                    }
+                    
+                    if ($overlapping->exists()) {
+                        $fail('The semester dates overlap with another semester in the same academic year.');
                     }
                 }
             ],
