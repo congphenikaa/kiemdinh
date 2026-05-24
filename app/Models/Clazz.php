@@ -56,7 +56,6 @@ class Clazz extends Model
     public function teachers()
     {
         return $this->belongsToMany(Teacher::class, 'teaching_assignments', 'class_id', 'teacher_id')
-            ->using(TeachingAssignment::class)
             ->withPivot('id');
     }
 

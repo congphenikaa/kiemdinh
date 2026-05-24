@@ -48,7 +48,6 @@ class Teacher extends Model
     public function classes()
     {
         return $this->belongsToMany(Clazz::class, 'teaching_assignments', 'teacher_id', 'class_id')
-            ->using(TeachingAssignment::class)
             ->withPivot('id');
     }
 
