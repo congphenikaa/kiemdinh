@@ -141,6 +141,10 @@ class TeachingAssignmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        return response()->json($teachers);
+        return response()->json([
+            'faculty_id' => $class->course->faculty_id,
+            'faculty_name' => $class->course->faculty?->name,
+            'teachers' => $teachers,
+        ]);
     }
 }
