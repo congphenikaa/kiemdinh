@@ -52,7 +52,7 @@
                     <p class="mb-2 font-semibold">Thông tin thanh toán</p>
                     <ul class="list-inside list-disc space-y-1 text-sm">
                         <li>Giảng viên: <strong>{{ $groupedPayments->count() }}</strong></li>
-                        <li>Lớp: <strong>{{ $totalClasses }}</strong> · Buổi: <strong>{{ $groupedPayments->sum('total_sessions') }}</strong></li>
+                        <li>Lớp: <strong>{{ $totalClasses }}</strong> · Buổi đã dạy: <strong>{{ $groupedPayments->sum('total_sessions') }}</strong></li>
                         <li>Tổng: <strong>{{ number_format($totalAmount) }} ₫</strong></li>
                     </ul>
                 </div>

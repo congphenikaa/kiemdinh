@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Clazz;
 use App\Models\Course;
 use App\Models\Schedule;
+use App\Services\ClassStatisticsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,10 @@ use Illuminate\Validation\Rule;
 
 class ScheduleController extends Controller
 {
+    public function __construct(
+        private readonly ClassStatisticsService $classStatisticsService
+    ) {}
+
     /**
      * Hiển thị danh sách lịch học
      */
@@ -117,6 +122,8 @@ class ScheduleController extends Controller
                 $currentDate->addDay();
             }
 
+            $this->classStatisticsService->syncForClass($class);
+
             DB::commit();
 
             if ($createdSessions < $remainingSessions) {
@@ -173,6 +180,7 @@ class ScheduleController extends Controller
             DB::beginTransaction();
 
             $schedule->update($validated);
+            $this->classStatisticsService->syncForClass($schedule->class_id);
 
             DB::commit();
 
@@ -193,7 +201,9 @@ class ScheduleController extends Controller
         try {
             DB::beginTransaction();
 
+            $classId = $schedule->class_id;
             $schedule->delete();
+            $this->classStatisticsService->syncForClass($classId);
 
             DB::commit();
 
@@ -225,7 +235,8 @@ class ScheduleController extends Controller
     public function toggleTaughtStatus(Schedule $schedule)
     {
         $schedule->update(['is_taught' => !$schedule->is_taught]);
-        
+        $this->classStatisticsService->syncForClass($schedule->class_id);
+
         return response()->json([
             'success' => true,
             'is_taught' => $schedule->is_taught

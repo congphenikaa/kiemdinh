@@ -48,6 +48,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('teaching-assignments', TeachingAssignmentController::class);
     Route::get('/api/classes/{class}/teachers', [TeachingAssignmentController::class, 'getTeachersByClass']);
 
+    Route::post('schedules/{schedule}/toggle-taught', [ScheduleController::class, 'toggleTaughtStatus'])
+        ->name('schedules.toggle-taught');
     Route::resource('schedules', ScheduleController::class);
     Route::prefix('class-reports')->group(function () {
             Route::get('/', [ClassReportController::class, 'index'])->name('class-reports.index');

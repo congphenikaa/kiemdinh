@@ -20,14 +20,14 @@
             <ul class="list-inside list-disc space-y-1 text-sm">
                 <li>Mức lương cơ bản: <strong>{{ number_format($paymentConfig->base_salary_per_session) }} ₫/buổi</strong></li>
                 <li>Giảng viên: <strong>{{ $groupedPayments->count() }}</strong> · Lớp: <strong>{{ count($paymentData) }}</strong></li>
-                <li>Buổi dạy: <strong>{{ $groupedPayments->sum('total_sessions') }}</strong></li>
+                <li>Buổi đã dạy: <strong>{{ $groupedPayments->sum('total_sessions') }}</strong></li>
                 <li>Tổng tiền: <strong class="text-base">{{ number_format($groupedPayments->sum('total_amount')) }} ₫</strong></li>
             </ul>
         </div>
 
         <div class="warning-box mb-6">
             <p class="mb-1 font-semibold">Công thức tính</p>
-            <code class="rounded bg-white/60 px-2 py-1 text-xs">Số buổi × (Hệ số HP + Hệ số lớp) × Hệ số GV × Lương cơ bản/buổi</code>
+            <code class="rounded bg-white/60 px-2 py-1 text-xs">Số buổi đã dạy × (Hệ số HP + Hệ số lớp) × Hệ số GV × Lương cơ bản/buổi</code>
         </div>
 
             <div class="space-y-4">
@@ -50,7 +50,7 @@
                         </div>
                         <div class="text-right">
                             <p class="font-bold text-blue-600">{{ number_format($payment['total_amount']) }} VNĐ</p>
-                            <p class="text-sm text-gray-500">{{ $payment['total_sessions'] }} buổi</p>
+                            <p class="text-sm text-gray-500">{{ $payment['total_sessions'] }} buổi đã dạy</p>
                         </div>
                     </button>
 
@@ -61,7 +61,7 @@
                                     <tr>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã lớp</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Học phần</th>
-                                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Số buổi</th>
+                                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Buổi đã dạy</th>
                                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Số SV</th>
                                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Hệ số HP</th>
                                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Hệ số lớp</th>

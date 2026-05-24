@@ -85,7 +85,10 @@
                             </td>
                             <td class="text-right">
                                 <div class="inline-flex gap-1">
-                                    <button type="button" onclick="toggleTaughtStatus({{ $schedule->id }})" class="btn-icon text-emerald-600 hover:bg-emerald-50" title="Đổi trạng thái dạy">
+                                    <button type="button"
+                                            class="btn-icon text-emerald-600 hover:bg-emerald-50 js-toggle-taught"
+                                            data-url="{{ route('schedules.toggle-taught', $schedule) }}"
+                                            title="Đổi trạng thái dạy">
                                         <i class="fas fa-check-circle"></i>
                                     </button>
                                     <a href="{{ route('schedules.edit', $schedule->id) }}" class="btn-icon text-primary-600 hover:bg-primary-50" title="Sửa">
@@ -121,15 +124,37 @@
             form.submit();
         });
     }
-    function toggleTaughtStatus(id) {
-        fetch(`/schedules/${id}/toggle-taught`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+    document.querySelectorAll('.js-toggle-taught').forEach((button) => {
+        button.addEventListener('click', function () {
+            const url = this.dataset.url;
+            if (!url) {
+                return;
             }
-        }).then(r => r.json()).then(data => { if (data.success) location.reload(); });
-    }
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': @json(csrf_token()),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Không thể cập nhật trạng thái.');
+                    }
+                    return data;
+                })
+                .then((data) => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch((error) => {
+                    alert(error.message || 'Có lỗi khi đổi trạng thái buổi học.');
+                });
+        });
+    });
 </script>
 @endpush

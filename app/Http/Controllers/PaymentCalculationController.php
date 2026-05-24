@@ -31,12 +31,11 @@ class PaymentCalculationController extends Controller
         $assignments = TeachingAssignment::with([
             'teacher.degree', 
             'teacher.faculty',
-            'class' => function($query) {
-                $query->with([
-                    'course', 
-                    'semester.academicYear', 
-                    'schedules' // Lấy tất cả các buổi học đã tạo, không chỉ buổi đã dạy
-                ]);
+            'class' => function ($query) {
+                $query->with(['course', 'semester.academicYear'])
+                    ->withCount([
+                        'schedules as taught_sessions_count' => fn ($q) => $q->where('is_taught', true),
+                    ]);
             }
         ])
         ->whereHas('class', function($query) use ($semester) {
@@ -78,8 +77,8 @@ class PaymentCalculationController extends Controller
                 continue;
             }
 
-            // Lấy tổng số buổi học đã tạo (không quan tâm đã dạy hay chưa)
-            $totalSessions = $assignment->class->schedules->count();
+            // Chỉ tính tiền theo buổi đã đánh dấu "đã dạy" trên thời khóa biểu
+            $totalSessions = (int) ($assignment->class->taught_sessions_count ?? 0);
 
             if ($totalSessions <= 0) {
                 continue;
@@ -122,7 +121,7 @@ class PaymentCalculationController extends Controller
 
         if (empty($paymentData)) {
             return redirect()->back()
-                ->with('error', 'Không có dữ liệu thanh toán nào được tính toán cho các lớp có trạng thái "open"!');
+                ->with('error', 'Không có buổi nào được đánh dấu "đã dạy" cho các lớp đang mở trong kỳ này. Vui lòng cập nhật thời khóa biểu trước khi tính toán.');
         }
 
         // Group by teacher

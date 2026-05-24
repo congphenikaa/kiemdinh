@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="space-y-6">
-    <x-page-card title="Chọn kỳ học để tính toán" description="Tính tiền dạy theo cấu hình lương và hệ số sĩ số hiện tại">
+    <x-page-card title="Chọn kỳ học để tính toán" description="Tính tiền theo số buổi đã dạy (đã tích trên thời khóa biểu), cấu hình lương và hệ số sĩ số">
         <div class="overflow-x-auto">
             <table class="data-table min-w-full">
                 <thead>

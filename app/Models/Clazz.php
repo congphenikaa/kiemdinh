@@ -43,6 +43,11 @@ class Clazz extends Model
         return $this->hasMany(Schedule::class, 'class_id');
     }
 
+    public function taughtSchedules()
+    {
+        return $this->hasMany(Schedule::class, 'class_id')->where('is_taught', true);
+    }
+
    public function teachingAssignments()
     {
         return $this->hasMany(TeachingAssignment::class, 'class_id');
