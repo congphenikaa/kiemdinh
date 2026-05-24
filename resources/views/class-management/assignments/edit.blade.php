@@ -44,7 +44,7 @@
                                            value="{{ $assignment->assigned_sessions }}"
                                            min="1"
                                            max="{{ $totalSessions }}"
-                                           class="w-20 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                           class="form-input w-20 px-2 py-1">
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                                     <div class="flex items-center">
@@ -52,7 +52,7 @@
                                                name="main_teacher" 
                                                value="{{ $index }}" 
                                                {{ $assignment->main_teacher ? 'checked' : '' }}
-                                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                               class="form-checkbox">
                                         <span class="ml-2">Giảng viên chính</span>
                                     </div>
                                     <input type="hidden" name="assignments[{{ $index }}][main_teacher]" value="{{ $assignment->main_teacher ? '1' : '0' }}">
@@ -84,13 +84,13 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="md:col-span-1">
-                    <label for="new_teacher_id" class="block text-sm font-medium text-gray-700 pt-2">
+                    <label for="new_teacher_id" class="form-label">
                         Giảng viên
                     </label>
                 </div>
                 <div class="md:col-span-2">
                     <select id="new_teacher_id"
-                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        class="form-input">
                         <option value="">-- Chọn giảng viên --</option>
                         @foreach($availableTeachers as $teacher)
                             <option value="{{ $teacher->id }}">{{ $teacher->name }} ({{ $teacher->code ?? 'N/A' }})</option>
@@ -101,7 +101,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div class="md:col-span-1">
-                    <label for="new_assigned_sessions" class="block text-sm font-medium text-gray-700 pt-2">
+                    <label for="new_assigned_sessions" class="form-label">
                         Số buổi phụ trách
                     </label>
                 </div>
@@ -110,7 +110,7 @@
                         value="1" 
                         min="1" 
                         max="{{ $remainingSessions }}"
-                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        class="form-input">
                 </div>
             </div>
 
@@ -225,14 +225,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         value="${assignedSessions}"
                         min="1"
                         max="{{ $totalSessions }}"
-                        class="w-20 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        class="form-input w-20 px-2 py-1">
                 </td>
                 <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                     <div class="flex items-center">
                         <input type="radio" 
                             name="main_teacher" 
                             value="${newIndex}" 
-                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                            class="form-checkbox">
                         <span class="ml-2">Giảng viên chính</span>
                     </div>
                     <input type="hidden" name="assignments[${newIndex}][main_teacher]" value="0">

@@ -1,61 +1,55 @@
 @extends('layouts.app')
 
 @section('title', 'Tính toán thanh toán')
-@section('breadcrumb', 'Tính toán thanh toán')
+@section('breadcrumb', 'Thanh toán / Tính toán')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-800">
-            <h2 class="text-xl font-semibold text-white">Danh sách kỳ học</h2>
-        </div>
-        
-        <div class="p-6">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+<div class="space-y-6">
+    <x-page-card title="Chọn kỳ học để tính toán" description="Tính tiền dạy theo cấu hình lương và hệ số sĩ số hiện tại">
+        <div class="overflow-x-auto">
+            <table class="data-table min-w-full">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Kỳ học</th>
+                        <th>Năm học</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th class="text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($semesters as $index => $semester)
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STT</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên kỳ học</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Năm học</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày bắt đầu</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày kết thúc</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($semesters as $index => $semester)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $semester->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $semester->academicYear->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $semester->start_date->format('d/m/Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $semester->end_date->format('d/m/Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {{ $semester->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                            <td class="text-slate-400">{{ $semesters->firstItem() + $index }}</td>
+                            <td class="font-medium text-slate-900">{{ $semester->name }}</td>
+                            <td>{{ $semester->academicYear->name }}</td>
+                            <td>{{ $semester->start_date->format('d/m/Y') }}</td>
+                            <td>{{ $semester->end_date->format('d/m/Y') }}</td>
+                            <td>
+                                <x-badge :variant="$semester->is_active ? 'success' : 'neutral'">
                                     {{ $semester->is_active ? 'Đang hoạt động' : 'Không hoạt động' }}
-                                </span>
+                                </x-badge>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <a href="{{ route('payment-calculations.calculate', $semester->id) }}" 
-                                   class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                    </svg>
+                            <td class="text-right">
+                                <a href="{{ route('payment-calculations.calculate', $semester->id) }}" class="btn-primary !py-1.5 !text-xs">
+                                    <i class="fas fa-calculator"></i>
                                     Tính toán
                                 </a>
                             </td>
                         </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <div class="mt-4 flex justify-center">
-                    {{ $semesters->links() }}
-                </div>
-            </div>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-500">Chưa có kỳ học</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </div>
+        @if($semesters->hasPages())
+            <div class="mt-4 border-t border-slate-100 pt-4">{{ $semesters->links() }}</div>
+        @endif
+    </x-page-card>
 </div>
 @endsection

@@ -4,122 +4,39 @@
 @section('breadcrumb', 'Báo cáo tổng hợp toàn trường')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <!-- Filter Card -->
-    <div class="bg-white rounded-lg shadow-md mb-6">
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h5 class="text-lg font-semibold text-gray-800">Lọc dữ liệu</h5>
-        </div>
-        <div class="p-6">
-            <form method="GET" class="flex items-center space-x-4">
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Học kỳ</label>
-                    <select name="semester" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @foreach($semesters as $semester)
-                            <option value="{{ $semester->id }}" {{ $semesterId == $semester->id ? 'selected' : '' }}>
-                                {{ $semester->name }} ({{ $semester->academicYear->name }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        Xem báo cáo
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+<div class="space-y-6">
+    <x-filter-panel>
+        <form method="GET" class="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div class="flex-1">
+                <label class="form-label">Học kỳ</label>
+                <select name="semester" class="form-input">
+                    @foreach($semesters as $semester)
+                        <option value="{{ $semester->id }}" {{ $semesterId == $semester->id ? 'selected' : '' }}>
+                            {{ $semester->name }} ({{ $semester->academicYear->name }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" class="btn-primary shrink-0">
+                <i class="fas fa-search"></i> Xem báo cáo
+            </button>
+        </form>
+    </x-filter-panel>
 
     @if($semesterId)
-        <!-- Summary Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <!-- Total Payment Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-blue-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-blue-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Tổng tiền toàn trường</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ number_format($stats->total_amount) }} VNĐ
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Teachers Count Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-green-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-green-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Số giáo viên</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ $stats->teacher_count }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Classes Count Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-indigo-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Số lớp học</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ $stats->class_count }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Faculties Count Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-purple-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-purple-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Số khoa</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ $stats->faculty_count }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <x-stat-card label="Tổng tiền toàn trường" :value="number_format($stats->total_amount) . ' ₫'" icon="fa-coins" color="primary" />
+            <x-stat-card label="Số giáo viên" :value="$stats->teacher_count" icon="fa-chalkboard-user" color="emerald" />
+            <x-stat-card label="Số lớp học" :value="$stats->class_count" icon="fa-school" color="violet" />
+            <x-stat-card label="Số khoa" :value="$stats->faculty_count" icon="fa-building-columns" color="amber" />
         </div>
 
         <!-- Charts and Data -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Faculty Comparison Chart -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                    <h5 class="text-lg font-semibold text-gray-800">So sánh giữa các khoa</h5>
+            <div class="app-card overflow-hidden">
+        <div class="border-b border-slate-100 px-5 py-4">
+            <h2 class="text-base font-semibold text-slate-900">So sánh giữa các khoa</h2>
                 </div>
                 <div class="p-6">
                     @if($facultyComparison->isNotEmpty())
@@ -144,9 +61,9 @@
             </div>
 
             <!-- Teacher Scatter Plot -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                    <h5 class="text-lg font-semibold text-gray-800">Phân bổ giáo viên</h5>
+            <div class="app-card overflow-hidden">
+        <div class="border-b border-slate-100 px-5 py-4">
+            <h2 class="text-base font-semibold text-slate-900">Phân bổ giáo viên</h2>
                 </div>
                 <div class="p-6">
                     @if($teacherScatterData->isNotEmpty())
@@ -172,9 +89,9 @@
         </div>
 
         <!-- Faculty Ranking Table -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <h5 class="text-lg font-semibold text-gray-800">Xếp hạng các khoa</h5>
+        <div class="app-card overflow-hidden mb-6">
+        <div class="border-b border-slate-100 px-5 py-4">
+            <h2 class="text-base font-semibold text-slate-900">Xếp hạng các khoa</h2>
             </div>
             <div class="p-6">
                 @if($facultyRanking->isNotEmpty())
@@ -240,7 +157,7 @@
         </div>
     @else
         <!-- Empty State -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="app-card overflow-hidden">
             <div class="p-12 text-center">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
                     <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

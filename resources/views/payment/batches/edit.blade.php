@@ -1,72 +1,62 @@
 @extends('layouts.app')
 
 @section('title', 'Chỉnh sửa đợt thanh toán')
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('payment-batches.index') }}" class="text-blue-600 hover:text-blue-800">Đợt thanh toán</a></li>
-    <li class="breadcrumb-item active">Chỉnh sửa</li>
-@endsection
+@section('breadcrumb', 'Đợt thanh toán / Chỉnh sửa')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-800">
-            <h2 class="text-xl font-semibold text-white">
-                Chỉnh sửa đợt thanh toán: {{ $batch->name }}
-            </h2>
-            <a href="{{ route('payment-batches.show', $batch) }}" class="inline-flex items-center px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                Quay lại
+<div class="mx-auto max-w-3xl space-y-6">
+    <x-page-card :title="'Sửa đợt: ' . $batch->name">
+        <x-slot name="actions">
+            <a href="{{ route('payment-batches.show', $batch) }}" class="btn-secondary !py-2 !text-sm">
+                <i class="fas fa-arrow-left"></i> Quay lại
             </a>
-        </div>
-        <div class="p-6">
+        </x-slot>
             <form action="{{ route('payment-batches.update', $batch) }}" method="POST">
                 @csrf
                 @method('PUT')
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Tên đợt thanh toán <span class="text-red-500">*</span></label>
+                        <label for="name" class="form-label">Tên đợt thanh toán <span class="text-red-500">*</span></label>
                         <input type="text" id="name" name="name" 
                                value="{{ old('name', $batch->name) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror" 
+                               class="form-input @error('name') border-red-500 @enderror" 
                                required>
                         @error('name')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="form-error">{{ $message }}</p>
                         @enderror
                     </div>
                     
                     <div>
-                        <label for="processed_date" class="block text-sm font-medium text-gray-700 mb-1">Ngày xử lý <span class="text-red-500">*</span></label>
+                        <label for="processed_date" class="form-label">Ngày xử lý <span class="text-red-500">*</span></label>
                         <input type="date" id="processed_date" name="processed_date" 
                                value="{{ old('processed_date', $batch->processed_date->format('Y-m-d')) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('processed_date') border-red-500 @enderror" 
+                               class="form-input @error('processed_date') border-red-500 @enderror" 
                                required>
                         @error('processed_date')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="form-error">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
                 
                 <div class="mb-6">
-                    <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Trạng thái <span class="text-red-500">*</span></label>
-                    <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('status') border-red-500 @enderror" required>
+                    <label for="status" class="form-label">Trạng thái <span class="text-red-500">*</span></label>
+                    <select id="status" name="status" class="form-select @error('status') border-red-500 @enderror" required>
                         <option value="pending" {{ old('status', $batch->status) === 'pending' ? 'selected' : '' }}>Chờ xử lý</option>
                         <option value="completed" {{ old('status', $batch->status) === 'completed' ? 'selected' : '' }}>Hoàn thành</option>
                         <option value="cancelled" {{ old('status', $batch->status) === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
                     </select>
                     @error('status')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="form-error">{{ $message }}</p>
                     @enderror
                 </div>
                 
                 <div class="mb-6">
-                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                    <label for="notes" class="form-label">Ghi chú</label>
                     <textarea id="notes" name="notes" rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('notes') border-red-500 @enderror">{{ old('notes', $batch->notes) }}</textarea>
+                              class="form-textarea @error('notes') border-red-500 @enderror">{{ old('notes', $batch->notes) }}</textarea>
                     @error('notes')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="form-error">{{ $message }}</p>
                     @enderror
                 </div>
                 
@@ -90,25 +80,12 @@
                     </div>
                 </div>
                 
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="window.history.back()" 
-                            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        Hủy bỏ
-                    </button>
-                    <button type="submit" id="submit-btn"
-                            class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Cập nhật đợt thanh toán
-                    </button>
+                <div class="flex flex-col-reverse justify-end gap-3 border-t border-slate-100 pt-6 sm:flex-row">
+                    <button type="button" onclick="window.history.back()" class="btn-secondary">Hủy</button>
+                    <button type="submit" id="submit-btn" class="btn-primary">Cập nhật</button>
                 </div>
             </form>
-        </div>
-    </div>
+    </x-page-card>
 </div>
 
 @push('scripts')

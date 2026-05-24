@@ -1,82 +1,81 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Tổng quan')
 
 @section('breadcrumb', 'Trang chủ')
 
 @section('content')
-<div class="p-6 bg-gray-50 min-h-screen">
-    <!-- Cards Section -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Degree Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="flex items-center p-6">
-                <div class="p-4 rounded-full bg-blue-500 text-white mr-4">
-                    <i class="fas fa-graduation-cap text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-medium text-gray-500">Bằng cấp</h3>
-                    <p class="text-2xl font-semibold text-gray-800">{{ $degrees->count() }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Faculty Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="flex items-center p-6">
-                <div class="p-4 rounded-full bg-green-500 text-white mr-4">
-                    <i class="fas fa-university text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-medium text-gray-500">Khoa</h3>
-                    <p class="text-2xl font-semibold text-gray-800">{{ $faculties->count() }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Teacher Card -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="flex items-center p-6">
-                <div class="p-4 rounded-full bg-orange-500 text-white mr-4">
-                    <i class="fas fa-chalkboard-teacher text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-medium text-gray-500">Giáo viên</h3>
-                    <p class="text-2xl font-semibold text-gray-800">{{ $teachers->count() }}</p>
-                </div>
-            </div>
-        </div>
+<div class="space-y-6">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <x-stat-card label="Bằng cấp" :value="$degrees->count()" icon="fa-graduation-cap" color="primary" />
+        <x-stat-card label="Khoa" :value="$faculties->count()" icon="fa-building-columns" color="emerald" />
+        <x-stat-card label="Giảng viên" :value="$teachers->count()" icon="fa-chalkboard-user" color="violet" />
     </div>
 
-    <!-- Recent Added Section -->
-    <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="p-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Thêm gần đây</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã số</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Họ tên</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khoa</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bằng cấp</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày thêm</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($recentTeachers as $teacher)
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teacher->code }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $teacher->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teacher->faculty->short_name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teacher->degree->short_name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teacher->created_at->format('d/m/Y') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <a href="{{ route('teachers.create') }}" class="app-card flex items-center gap-3 p-4 transition hover:border-primary-200 hover:shadow-md">
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
+                <i class="fas fa-user-plus"></i>
+            </span>
+            <span class="text-sm font-medium text-slate-800">Thêm giảng viên</span>
+        </a>
+        <a href="{{ route('payment-calculations.index') }}" class="app-card flex items-center gap-3 p-4 transition hover:border-primary-200 hover:shadow-md">
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                <i class="fas fa-calculator"></i>
+            </span>
+            <span class="text-sm font-medium text-slate-800">Tính thanh toán</span>
+        </a>
+        <a href="{{ route('reports.summary') }}" class="app-card flex items-center gap-3 p-4 transition hover:border-primary-200 hover:shadow-md">
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                <i class="fas fa-chart-line"></i>
+            </span>
+            <span class="text-sm font-medium text-slate-800">Báo cáo tổng hợp</span>
+        </a>
+    </div>
+
+    <div class="app-card overflow-hidden">
+        <div class="border-b border-slate-100 px-5 py-4">
+            <h2 class="text-base font-semibold text-slate-900">Giảng viên thêm gần đây</h2>
+            <p class="mt-0.5 text-sm text-slate-500">5 bản ghi mới nhất</p>
         </div>
+        <div class="overflow-x-auto">
+            <table class="data-table min-w-full">
+                <thead>
+                    <tr>
+                        <th>Mã số</th>
+                        <th>Họ tên</th>
+                        <th>Khoa</th>
+                        <th>Bằng cấp</th>
+                        <th>Ngày thêm</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentTeachers as $teacher)
+                        <tr>
+                            <td class="font-mono text-xs text-slate-500">{{ $teacher->code }}</td>
+                            <td class="font-medium text-slate-900">{{ $teacher->name }}</td>
+                            <td>{{ $teacher->faculty->short_name ?? '—' }}</td>
+                            <td>{{ $teacher->degree->short_name ?? '—' }}</td>
+                            <td>{{ $teacher->created_at->format('d/m/Y') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="py-12 text-center text-slate-500">
+                                <i class="fas fa-inbox mb-2 text-2xl text-slate-300"></i>
+                                <p>Chưa có giảng viên nào</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if($recentTeachers->isNotEmpty())
+            <div class="border-t border-slate-100 px-5 py-3 text-right">
+                <a href="{{ route('teachers.index') }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">
+                    Xem tất cả <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                </a>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

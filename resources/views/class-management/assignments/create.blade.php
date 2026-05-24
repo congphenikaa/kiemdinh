@@ -8,14 +8,14 @@
         {{-- Lớp học --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-1">
-                <label for="class_id" class="block text-sm font-medium text-gray-700 pt-2">
+                <label for="class_id" class="form-label">
                     Lớp học <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Chọn lớp học cần phân công</p>
+                <p class="form-hint">Chọn lớp học cần phân công</p>
             </div>
             <div class="md:col-span-2">
                 <select id="class_id" name="class_id" required
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    class="form-input">
                     <option value="">-- Chọn lớp học --</option>
                     @foreach($classes as $class)
                         <option value="{{ $class->id }}" 
@@ -33,14 +33,14 @@
         {{-- Giáo viên --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-1">
-                <label for="teacher_id" class="block text-sm font-medium text-gray-700 pt-2">
+                <label for="teacher_id" class="form-label">
                     Giáo viên <span class="text-red-500">*</span>
                 </label>
-                <p class="mt-1 text-xs text-gray-500">Chọn giáo viên phân công</p>
+                <p class="form-hint">Chọn giáo viên phân công</p>
             </div>
             <div class="md:col-span-2">
                 <select id="teacher_id" name="teacher_id" required
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    class="form-input">
                     <option value="">-- Chọn giáo viên --</option>
                     @foreach($teachers as $teacher)
                         <option value="{{ $teacher->id }}" 

@@ -1,39 +1,24 @@
 @extends('layouts.app')
 
 @section('title', 'Chi tiết đợt thanh toán')
-@section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('payment-batches.index') }}" class="text-blue-600 hover:text-blue-800">Đợt thanh toán</a></li>
-    <li class="breadcrumb-item active">Chi tiết</li>
-@endsection
+@section('breadcrumb', 'Đợt thanh toán / Chi tiết')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-800">
-            <h2 class="text-xl font-semibold text-white">
-                Đợt thanh toán: {{ $paymentBatch->name }}
-            </h2>
-            <div class="space-x-2">
-                <a href="{{ route('payment-batches.edit', $paymentBatch->id) }}" 
-                   class="inline-flex items-center px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                    Chỉnh sửa
+<div class="space-y-6">
+    <x-page-card :title="'Đợt: ' . $paymentBatch->name">
+        <x-slot name="actions">
+            @if($paymentBatch->status === 'pending')
+                <a href="{{ route('payment-batches.edit', $paymentBatch->id) }}" class="btn-secondary !py-2 !text-sm">
+                    <i class="fas fa-pen"></i> Sửa
                 </a>
-                <a href="{{ route('payment-batches.index') }}" 
-                   class="inline-flex items-center px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Quay lại
-                </a>
-            </div>
-        </div>
-        <div class="p-6">
+            @endif
+            <a href="{{ route('payment-batches.index') }}" class="btn-secondary !py-2 !text-sm">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </x-slot>
             <!-- Thông tin đợt thanh toán -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Thông tin đợt thanh toán</h3>
                     <div class="space-y-2">
                         <p><span class="font-medium text-gray-700">Kỳ học:</span> {{ $paymentBatch->semester->name }}</p>
@@ -54,7 +39,7 @@
                     </div>
                 </div>
                 
-                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Thống kê thanh toán</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-white p-3 rounded shadow">
@@ -143,7 +128,6 @@
                     </tfoot>
                 </table>
             </div>
-        </div>
-    </div>
+    </x-page-card>
 </div>
 @endsection

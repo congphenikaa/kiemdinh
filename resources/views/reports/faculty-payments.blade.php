@@ -4,17 +4,12 @@
 @section('breadcrumb', 'Báo cáo tiền dạy theo khoa')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <!-- Filter Card -->
-    <div class="bg-white rounded-lg shadow-md mb-6">
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h5 class="text-lg font-semibold text-gray-800">Lọc dữ liệu</h5>
-        </div>
-        <div class="p-6">
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                <div class="md:col-span-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Học kỳ</label>
-                    <select name="semester" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+<div class="space-y-6">
+    <x-filter-panel>
+        <form method="GET" class="grid grid-cols-1 gap-4 md:grid-cols-12">
+            <div class="md:col-span-5">
+                <label class="form-label">Học kỳ</label>
+                <select name="semester" class="form-input">
                         @foreach($semesters as $semester)
                             <option value="{{ $semester->id }}" {{ (string)$semester->id === (string)$semesterId ? 'selected' : '' }}>
                                 {{ $semester->name }} ({{ $semester->academicYear->name ?? '' }})
@@ -22,9 +17,9 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="md:col-span-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Khoa</label>
-                    <select name="faculty" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <div class="md:col-span-5">
+                <label class="form-label">Khoa</label>
+                <select name="faculty" class="form-input">
                         <option value="">-- Chọn khoa --</option>
                         @foreach($faculties as $f)
                             <option value="{{ $f->id }}" {{ (string)$f->id === (string)$facultyId ? 'selected' : '' }}>
@@ -33,110 +28,34 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="md:col-span-2 flex items-end">
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        Xem báo cáo
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+            <div class="flex items-end md:col-span-2">
+                <button type="submit" class="btn-primary w-full">
+                    <i class="fas fa-search"></i> Xem báo cáo
+                </button>
+            </div>
+        </form>
+    </x-filter-panel>
 
     @if($facultyId && $semesterId && $faculty)
-        <!-- Summary Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <!-- Total Payment Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-blue-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-blue-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Tổng tiền khoa</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ number_format($stats->total_amount) }} VNĐ
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Teachers Count Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-green-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-green-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Số giáo viên</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ $stats->teacher_count }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Average Payment Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-indigo-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-indigo-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Trung bình/GV</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ number_format($stats->average_payment) }} VNĐ
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Classes Count Card -->
-            <div class="bg-white rounded-lg shadow-md border-l-4 border-purple-500 overflow-hidden">
-                <div class="p-4">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-purple-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500 truncate">Số lớp học</p>
-                            <p class="text-xl font-semibold text-gray-900">
-                                {{ $stats->class_count }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <x-stat-card label="Tổng tiền khoa" :value="number_format($stats->total_amount) . ' ₫'" icon="fa-coins" color="primary" />
+            <x-stat-card label="Số giáo viên" :value="$stats->teacher_count" icon="fa-users" color="emerald" />
+            <x-stat-card label="Trung bình/GV" :value="number_format($stats->average_payment) . ' ₫'" icon="fa-chart-line" color="violet" />
+            <x-stat-card label="Số lớp học" :value="$stats->class_count" icon="fa-school" color="amber" />
         </div>
 
         <!-- Faculty Info and Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <!-- Faculty Info Column -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <h5 class="text-lg font-semibold text-gray-800">Thông tin khoa</h5>
+                <div class="app-card overflow-hidden">
+                    <div class="border-b border-slate-100 px-5 py-4">
+                        <h2 class="text-base font-semibold text-slate-900">Thông tin khoa</h2>
                     </div>
                     <div class="p-6 text-center">
                         <div class="mb-4">
                             <div class="relative inline-block">
-                                <div class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white text-3xl font-bold">
+                                <div class="flex h-24 w-24 items-center justify-center rounded-full bg-primary-600 text-3xl font-bold text-white">
                                     {{ substr($faculty->short_name ?? '', 0, 2) }}
                                 </div>
                             </div>
@@ -184,9 +103,9 @@
                 </div>
                 
                 <!-- Top Teachers -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden mt-6">
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <h5 class="text-lg font-semibold text-gray-800">Top 5 giáo viên</h5>
+                <div class="app-card overflow-hidden mt-6">
+                    <div class="border-b border-slate-100 px-5 py-4">
+                        <h2 class="text-base font-semibold text-slate-900">Top 5 giáo viên</h2>
                     </div>
                     <div class="p-6">
                         @if($topTeachers->isNotEmpty())
@@ -234,9 +153,9 @@
             <!-- Charts Column -->
             <div class="lg:col-span-2">
                 <!-- Department Distribution Chart -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <h5 class="text-lg font-semibold text-gray-800">Phân bổ theo bộ môn</h5>
+                <div class="app-card overflow-hidden mb-6">
+                    <div class="border-b border-slate-100 px-5 py-4">
+                        <h2 class="text-base font-semibold text-slate-900">Phân bổ theo bộ môn</h2>
                     </div>
                     <div class="p-6">
                         @if($departmentData->isNotEmpty())
@@ -261,9 +180,9 @@
                 </div>
                 
                 <!-- Payment Trend Chart -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <h5 class="text-lg font-semibold text-gray-800">Xu hướng thanh toán</h5>
+                <div class="app-card overflow-hidden">
+                    <div class="border-b border-slate-100 px-5 py-4">
+                        <h2 class="text-base font-semibold text-slate-900">Xu hướng thanh toán</h2>
                     </div>
                     <div class="p-6">
                         @if($trendData->isNotEmpty())
@@ -290,7 +209,7 @@
         </div>
     @else
         <!-- Empty State -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="app-card overflow-hidden">
             <div class="p-12 text-center">
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
                     <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

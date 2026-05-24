@@ -1,3 +1,139 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    .app-card {
+        @apply rounded-xl border border-slate-200 bg-white shadow-card;
+    }
+
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    }
+
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100;
+    }
+
+    .btn-icon {
+        @apply inline-flex items-center justify-center rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800;
+    }
+
+    .form-input {
+        @apply block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+    }
+
+    .form-textarea {
+        @apply block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+    }
+
+    .form-select {
+        @apply block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+    }
+
+    .form-hint {
+        @apply mt-1 text-xs text-slate-500;
+    }
+
+    .form-error {
+        @apply mt-1 text-sm text-red-600;
+    }
+
+    .form-checkbox {
+        @apply h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500;
+    }
+
+    .sidebar-link {
+        @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white;
+    }
+
+    .sidebar-link-active {
+        @apply bg-primary-600/20 text-white ring-1 ring-inset ring-primary-500/30;
+    }
+
+    .sidebar-sublink {
+        @apply flex items-center gap-2.5 rounded-lg py-2 pl-10 pr-3 text-sm text-slate-400 transition hover:bg-slate-800 hover:text-slate-200;
+    }
+
+    .sidebar-sublink-active {
+        @apply bg-slate-800 text-white;
+    }
+
+    .data-table thead {
+        @apply bg-slate-50;
+    }
+
+    .data-table th {
+        @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500;
+    }
+
+    .data-table td {
+        @apply px-4 py-3 text-sm text-slate-600;
+    }
+
+    .data-table tbody tr {
+        @apply border-t border-slate-100 transition hover:bg-slate-50/80;
+    }
+
+    .page-toolbar {
+        @apply mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+    }
+
+    .search-input-wrap {
+        @apply relative;
+    }
+
+    .search-input-wrap input {
+        @apply w-full rounded-lg border-slate-300 py-2 pl-10 pr-4 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:w-64;
+    }
+
+    .form-label {
+        @apply mb-1 block text-sm font-medium text-slate-700;
+    }
+
+    .badge {
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    }
+
+    .badge-success {
+        @apply bg-emerald-100 text-emerald-800;
+    }
+
+    .badge-warning {
+        @apply bg-amber-100 text-amber-800;
+    }
+
+    .badge-danger {
+        @apply bg-red-100 text-red-800;
+    }
+
+    .badge-neutral {
+        @apply bg-slate-100 text-slate-700;
+    }
+
+    .badge-primary {
+        @apply bg-primary-100 text-primary-800;
+    }
+
+    .info-box {
+        @apply rounded-lg border border-primary-200 bg-primary-50 p-4 text-sm text-primary-900;
+    }
+
+    .warning-box {
+        @apply rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900;
+    }
+
+    .btn-success {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2;
+    }
+}
